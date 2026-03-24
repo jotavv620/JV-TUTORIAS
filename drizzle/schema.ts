@@ -101,3 +101,74 @@ export const instituicoes = mysqlTable("instituicoes", {
 
 export type Instituicao = typeof instituicoes.$inferSelect;
 export type InsertInstituicao = typeof instituicoes.$inferInsert;
+
+// Gamification - Professor Points
+export const professorPoints = mysqlTable("professorPoints", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  professorName: varchar("professorName", { length: 255 }).notNull(),
+  totalPoints: int("totalPoints").default(0).notNull(),
+  tutoriasCompleted: int("tutoriasCompleted").default(0).notNull(),
+  averageRating: varchar("averageRating", { length: 10 }).default("0.0").notNull(),
+  currentMedal: mysqlEnum("currentMedal", ["none", "bronze", "silver", "gold", "platinum"]).default("none").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ProfessorPoints = typeof professorPoints.$inferSelect;
+export type InsertProfessorPoints = typeof professorPoints.$inferInsert;
+
+// Gamification - Medals
+export const medals = mysqlTable("medals", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  professorName: varchar("professorName", { length: 255 }).notNull(),
+  medalType: mysqlEnum("medalType", ["bronze", "silver", "gold", "platinum"]).notNull(),
+  pointsRequired: int("pointsRequired").notNull(),
+  unlockedAt: timestamp("unlockedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Medal = typeof medals.$inferSelect;
+export type InsertMedal = typeof medals.$inferInsert;
+
+// Gamification - Achievements
+export const achievements = mysqlTable("achievements", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  professorName: varchar("professorName", { length: 255 }).notNull(),
+  achievementType: mysqlEnum("achievementType", [
+    "first_tutoria",
+    "ten_tutorias",
+    "fifty_tutorias",
+    "perfect_rating",
+    "consistency",
+    "rising_star",
+    "master_teacher",
+    "legendary"
+  ]).notNull(),
+  description: text("description").notNull(),
+  icon: varchar("icon", { length: 50 }).notNull(),
+  pointsReward: int("pointsReward").notNull(),
+  unlockedAt: timestamp("unlockedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = typeof achievements.$inferInsert;
+
+// Gamification - Leaderboard (cached for performance)
+export const leaderboard = mysqlTable("leaderboard", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  professorName: varchar("professorName", { length: 255 }).notNull(),
+  rank: int("rank").notNull(),
+  totalPoints: int("totalPoints").notNull(),
+  tutoriasCompleted: int("tutoriasCompleted").notNull(),
+  averageRating: varchar("averageRating", { length: 10 }).notNull(),
+  currentMedal: mysqlEnum("currentMedal", ["none", "bronze", "silver", "gold", "platinum"]).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Leaderboard = typeof leaderboard.$inferSelect;
+export type InsertLeaderboard = typeof leaderboard.$inferInsert;

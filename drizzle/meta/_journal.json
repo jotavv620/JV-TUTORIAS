@@ -15,6 +15,13 @@
       "when": 1774364795506,
       "tag": "0001_hot_puppet_master",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1774365462695,
+      "tag": "0002_clammy_gideon",
+      "breakpoints": true
     }
   ]
 }

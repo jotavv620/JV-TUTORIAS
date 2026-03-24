@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { AnalyticsTab, NotificationsTab, CalendarTab } from './AdvancedComponents';
+import { Leaderboard, MedalsShowcase, AchievementsShowcase, PointsSummary } from './GamificationComponents';
 
 // --- COMPONENTES DE INTERFACE ---
 
@@ -449,6 +450,81 @@ export default function TutoriaManager() {
     else if (type === 'inst') setInstituicoes(instituicoes.filter(i => i !== value));
   };
 
+  const calculateProfessorStats = () => {
+    const professors: { [key: string]: any } = {};
+    
+    tutorias.forEach((t: Tutoria) => {
+      if (!professors[t.professor]) {
+        professors[t.professor] = {
+          name: t.professor,
+          totalPoints: 0,
+          tutoriasCompleted: 0,
+          ratings: [],
+          currentMedal: 'none'
+        };
+      }
+      
+      if (t.status === 'completed') {
+        professors[t.professor].tutoriasCompleted += 1;
+        professors[t.professor].totalPoints += 10;
+        
+        if (t.feedback) {
+          const avgRating = (t.feedback.pontualidade + t.feedback.audio + t.feedback.conteudo) / 3;
+          professors[t.professor].ratings.push(avgRating);
+          
+          if (avgRating >= 4.5) {
+            professors[t.professor].totalPoints += 15;
+          } else if (avgRating >= 3.5) {
+            professors[t.professor].totalPoints += 10;
+          } else {
+            professors[t.professor].totalPoints += 5;
+          }
+        }
+      }
+    });
+    
+    Object.values(professors).forEach((prof: any) => {
+      prof.averageRating = prof.ratings.length > 0 
+        ? (prof.ratings.reduce((a: number, b: number) => a + b, 0) / prof.ratings.length).toFixed(1)
+        : '0.0';
+      
+      if (prof.totalPoints >= 500) prof.currentMedal = 'platinum';
+      else if (prof.totalPoints >= 300) prof.currentMedal = 'gold';
+      else if (prof.totalPoints >= 150) prof.currentMedal = 'silver';
+      else if (prof.totalPoints >= 50) prof.currentMedal = 'bronze';
+    });
+    
+    return Object.values(professors);
+  };
+
+  const calculateAchievements = () => {
+    const achievements: any[] = [];
+    const professors = calculateProfessorStats();
+    
+    professors.forEach((prof: any) => {
+      if (prof.tutoriasCompleted >= 1) {
+        achievements.push({ id: 'first_tutoria', type: 'first_tutoria' });
+      }
+      if (prof.tutoriasCompleted >= 10) {
+        achievements.push({ id: 'ten_tutorias', type: 'ten_tutorias' });
+      }
+      if (prof.tutoriasCompleted >= 50) {
+        achievements.push({ id: 'fifty_tutorias', type: 'fifty_tutorias' });
+      }
+      if (prof.averageRating === '5.0') {
+        achievements.push({ id: 'perfect_rating', type: 'perfect_rating' });
+      }
+      if (prof.totalPoints >= 300) {
+        achievements.push({ id: 'master_teacher', type: 'master_teacher' });
+      }
+      if (prof.totalPoints >= 500) {
+        achievements.push({ id: 'legendary', type: 'legendary' });
+      }
+    });
+    
+    return achievements;
+  };
+
   const renderStars = (count: number) => (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map(i => (
@@ -523,6 +599,7 @@ export default function TutoriaManager() {
                 { id: 'analytics', label: 'Analítica', icon: LineChart },
                 { id: 'notifications', label: 'Notificações', icon: Bell },
                 { id: 'calendar', label: 'Calendário', icon: Calendar },
+                { id: 'gamification', label: 'Gamificação', icon: Star },
                 { id: 'settings', label: 'Configurações', icon: SettingsIcon }
               ].map(tab => (
                 <button
@@ -552,6 +629,14 @@ export default function TutoriaManager() {
         {currentTab === 'analytics' && <AnalyticsTab tutorias={tutorias} />}
         {currentTab === 'notifications' && <NotificationsTab tutorias={tutorias} />}
         {currentTab === 'calendar' && <CalendarTab tutorias={tutorias} />}
+        {currentTab === 'gamification' && (
+          <div className="space-y-6">
+            <PointsSummary professors={calculateProfessorStats()} />
+            <Leaderboard professors={calculateProfessorStats()} />
+            <MedalsShowcase professors={calculateProfessorStats()} />
+            <AchievementsShowcase achievements={calculateAchievements()} />
+          </div>
+        )}
         {currentTab === 'settings' && <Settings disciplinas={disciplinas} professores={professores} instituicoes={instituicoes} inputDisciplina={inputDisciplina} setInputDisciplina={setInputDisciplina} inputProfessor={inputProfessor} setInputProfessor={setInputProfessor} inputInstituicao={inputInstituicao} setInputInstituicao={setInputInstituicao} handleAddItem={handleAddItem} handleRemoveItem={handleRemoveItem} />}
       </main>
 
