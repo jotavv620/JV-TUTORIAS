@@ -32,9 +32,14 @@ import {
   MapPin,
   Building2,
   LogOut,
-  FileDown
+  FileDown,
+  TrendingUp,
+  Bell,
+  LineChart,
+  Activity
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { AnalyticsTab, NotificationsTab, CalendarTab } from './AdvancedComponents';
 
 // --- COMPONENTES DE INTERFACE ---
 
@@ -515,6 +520,9 @@ export default function TutoriaManager() {
               {[
                 { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                 { id: 'ranking', label: 'Ranking', icon: Trophy },
+                { id: 'analytics', label: 'Analítica', icon: LineChart },
+                { id: 'notifications', label: 'Notificações', icon: Bell },
+                { id: 'calendar', label: 'Calendário', icon: Calendar },
                 { id: 'settings', label: 'Configurações', icon: SettingsIcon }
               ].map(tab => (
                 <button
@@ -541,6 +549,9 @@ export default function TutoriaManager() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {currentTab === 'dashboard' && <Dashboard tutorias={tutorias} setIsModalOpen={setIsModalOpen} updateStatus={updateStatus} setDeleteConfirmation={setDeleteConfirmation} setActiveCheckin={setActiveCheckin} setActiveFeedback={setActiveFeedback} renderStars={renderStars} />}
         {currentTab === 'ranking' && <Ranking ranking={calculateRanking()} renderStars={renderStars} onExportPDF={handleExportPDF} />}
+        {currentTab === 'analytics' && <AnalyticsTab tutorias={tutorias} />}
+        {currentTab === 'notifications' && <NotificationsTab tutorias={tutorias} />}
+        {currentTab === 'calendar' && <CalendarTab tutorias={tutorias} />}
         {currentTab === 'settings' && <Settings disciplinas={disciplinas} professores={professores} instituicoes={instituicoes} inputDisciplina={inputDisciplina} setInputDisciplina={setInputDisciplina} inputProfessor={inputProfessor} setInputProfessor={setInputProfessor} inputInstituicao={inputInstituicao} setInputInstituicao={setInputInstituicao} handleAddItem={handleAddItem} handleRemoveItem={handleRemoveItem} />}
       </main>
 
