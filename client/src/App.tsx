@@ -5,11 +5,31 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import TutoriaManager from "./pages/TutoriaManager";
+import LandingPage from "./pages/LandingPage";
+import RegisterPage from "./pages/RegisterPage";
+import PublicDashboard from "./pages/PublicDashboard";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 function Router() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-bold">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
-      <Route path={"/"} component={TutoriaManager} />
+      <Route path={"/"} component={isAuthenticated ? TutoriaManager : LandingPage} />
+      <Route path={"/app"} component={TutoriaManager} />
+      <Route path={"/register"} component={RegisterPage} />
+      <Route path={"/dashboard"} component={PublicDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
