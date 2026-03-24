@@ -4,7 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import TutoriaManager from "./pages/TutoriaManager";
+import TutoriaManagerIntegrated from "./pages/TutoriaManagerIntegrated";
 import LandingPage from "./pages/LandingPage";
 import RegisterPage from "./pages/RegisterPage";
 import PublicDashboard from "./pages/PublicDashboard";
@@ -26,8 +26,8 @@ function Router() {
 
   return (
     <Switch>
-      <Route path={"/"} component={isAuthenticated ? TutoriaManager : LandingPage} />
-      <Route path={"/app"} component={TutoriaManager} />
+      <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : LandingPage} />
+      <Route path={"/app"} component={TutoriaManagerIntegrated} />
       <Route path={"/register"} component={RegisterPage} />
       <Route path={"/dashboard"} component={PublicDashboard} />
       <Route path={"/404"} component={NotFound} />

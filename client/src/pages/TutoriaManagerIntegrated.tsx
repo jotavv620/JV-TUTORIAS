@@ -1,0 +1,520 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { getLoginUrl } from '@/const';
+import { trpc } from '@/lib/trpc';
+import { 
+  Calendar, Clock, User, BookOpen, Star, CheckCircle, AlertCircle, Plus, BarChart3, 
+  MessageSquare, Mic, Timer, ChevronRight, ClipboardList, Settings as SettingsIcon,
+  Trash2, PlayCircle, X, Sparkles, Loader2, Camera, Upload, FileCheck, ShieldCheck,
+  Trophy, Award, MapPin, Building2, LogOut, FileDown, TrendingUp, Bell, LineChart, Activity
+} from 'lucide-react';
+import { AnalyticsTab, NotificationsTab, CalendarTab } from './AdvancedComponents';
+import { Leaderboard, MedalsShowcase, AchievementsShowcase, PointsSummary } from './GamificationComponents';
+import { toast } from 'sonner';
+
+interface Tutoria {
+  id: number;
+  disciplina: string;
+  professor: string;
+  instituicao: string;
+  tutor: string;
+  data: string;
+  horario: string;
+  horarioTermino: string;
+  status: 'scheduled' | 'in_progress' | 'completed';
+  feedback: { pontualidade: number; audio: number; conteudo: number; comentarios: string } | null;
+  checkin: { timestamp: string } | null;
+}
+
+interface FeedbackForm {
+  pontualidade: number;
+  audio: number;
+  conteudo: number;
+  comentarios: string;
+  [key: string]: number | string;
+}
+
+const StatCard = ({ label, val, icon: Icon, colorClass }: { label: string; val: number; icon: React.ComponentType<any>; colorClass: string }) => (
+  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-all hover:shadow-md">
+    <div className={`p-3 rounded-xl ${colorClass}`}>
+      <Icon size={24} />
+    </div>
+    <div>
+      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none">{label}</p>
+      <p className="text-2xl font-black text-slate-800 mt-1">{val}</p>
+    </div>
+  </div>
+);
+
+export default function TutoriaManagerIntegrated() {
+  const { isAuthenticated, user, logout, loading: authLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // tRPC queries and mutations
+  const { data: tutorias = [], isLoading: tutoriasLoading, refetch: refetchTutorias } = trpc.tutorias.list.useQuery(undefined, { enabled: isAuthenticated });
+  const createTutoriaMutation = trpc.tutorias.create.useMutation();
+  const updateStatusMutation = trpc.tutorias.updateStatus.useMutation();
+  const deleteTutoriaMutation = trpc.tutorias.delete.useMutation();
+  const createFeedbackMutation = trpc.feedback.create.useMutation();
+  const createCheckinMutation = trpc.checkin.create.useMutation();
+
+  // Local state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeCheckin, setActiveCheckin] = useState<Tutoria | null>(null);
+  const [activeFeedback, setActiveFeedback] = useState<Tutoria | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+
+  const [newTutoria, setNewTutoria] = useState<Omit<Tutoria, 'id' | 'status' | 'feedback' | 'checkin'>>({
+    instituicao: '',
+    disciplina: '',
+    professor: '',
+    tutor: '',
+    data: '',
+    horario: '',
+    horarioTermino: ''
+  });
+
+  const [checkinForm, setCheckinForm] = useState({ description: '' });
+  const [feedbackForm, setFeedbackForm] = useState<FeedbackForm>({ pontualidade: 0, audio: 0, conteudo: 0, comentarios: '' });
+
+  const [disciplinas, setDisciplinas] = useState(['Matemática', 'Física', 'Química', 'Português']);
+  const [professores, setProfessores] = useState(['Dr. Silva', 'Dra. Costa', 'Prof. João']);
+  const [instituicoes, setInstituicoes] = useState(['Campus A', 'Campus B', 'Campus C']);
+
+  const [inputDisciplina, setInputDisciplina] = useState('');
+  const [inputProfessor, setInputProfessor] = useState('');
+  const [inputInstituicao, setInputInstituicao] = useState('');
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-slate-50 flex items-center justify-center">
+        <Loader2 className="animate-spin text-orange-500" size={40} />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-md text-center">
+          <div className="p-4 bg-orange-500 rounded-2xl w-fit mx-auto mb-6">
+            <BookOpen size={32} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-800 mb-2 uppercase italic">Tutoria Manager</h1>
+          <p className="text-slate-600 text-sm mb-8">Sistema de gestão de tutorias com autenticação segura</p>
+          <a href={getLoginUrl()} className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg transition-all">
+            Entrar com Manus
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const handleAddTutoria = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createTutoriaMutation.mutateAsync(newTutoria);
+      setNewTutoria({ instituicao: '', disciplina: '', professor: '', tutor: '', data: '', horario: '', horarioTermino: '' });
+      setIsModalOpen(false);
+      refetchTutorias();
+      toast.success('Tutoria criada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao criar tutoria');
+      console.error(error);
+    }
+  };
+
+  const handleUpdateStatus = async (id: number, newStatus: string) => {
+    try {
+      await updateStatusMutation.mutateAsync({ 
+        tutoriaId: id, 
+        status: newStatus as 'scheduled' | 'in_progress' | 'completed'
+      });
+      refetchTutorias();
+      toast.success('Status atualizado!');
+    } catch (error) {
+      toast.error('Erro ao atualizar status');
+    }
+  };
+
+  const handleDeleteTutoria = async (id: number) => {
+    try {
+      await deleteTutoriaMutation.mutateAsync({ tutoriaId: id });
+      setDeleteConfirmation(null);
+      refetchTutorias();
+      toast.success('Tutoria deletada!');
+    } catch (error) {
+      toast.error('Erro ao deletar tutoria');
+    }
+  };
+
+  const handleCheckinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeCheckin) return;
+    try {
+      await createCheckinMutation.mutateAsync({
+        tutoriaId: activeCheckin.id,
+        timestamp: new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }),
+        description: checkinForm.description
+      });
+      setActiveCheckin(null);
+      setCheckinForm({ description: '' });
+      refetchTutorias();
+      toast.success('Check-in realizado!');
+    } catch (error) {
+      toast.error('Erro ao fazer check-in');
+    }
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeFeedback) return;
+    try {
+      await createFeedbackMutation.mutateAsync({
+        tutoriaId: activeFeedback.id,
+        pontualidade: Number(feedbackForm.pontualidade),
+        audio: Number(feedbackForm.audio),
+        conteudo: Number(feedbackForm.conteudo),
+        comentarios: feedbackForm.comentarios
+      });
+      await handleUpdateStatus(activeFeedback.id, 'completed');
+      setActiveFeedback(null);
+      setFeedbackForm({ pontualidade: 0, audio: 0, conteudo: 0, comentarios: '' });
+      refetchTutorias();
+      toast.success('Feedback enviado!');
+    } catch (error) {
+      toast.error('Erro ao enviar feedback');
+    }
+  };
+
+  const handleAddItem = (type: string, value: string) => {
+    if (!value.trim()) return;
+    if (type === 'disc') {
+      setDisciplinas([...disciplinas, value]);
+      setInputDisciplina('');
+    } else if (type === 'prof') {
+      setProfessores([...professores, value]);
+      setInputProfessor('');
+    } else if (type === 'inst') {
+      setInstituicoes([...instituicoes, value]);
+      setInputInstituicao('');
+    }
+  };
+
+  const handleRemoveItem = (type: string, value: string) => {
+    if (type === 'disc') setDisciplinas(disciplinas.filter(d => d !== value));
+    else if (type === 'prof') setProfessores(professores.filter(p => p !== value));
+    else if (type === 'inst') setInstituicoes(instituicoes.filter(i => i !== value));
+  };
+
+  const renderStars = (rating: number) => (
+    <>
+      {[...Array(5)].map((_, i) => (
+        <Star key={i} size={14} className={i < rating ? 'fill-orange-400 text-orange-400' : 'text-slate-200'} />
+      ))}
+    </>
+  );
+
+  const tutoriasArray = Array.isArray(tutorias) ? tutorias : [];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-slate-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-orange-500 rounded-xl">
+              <BookOpen size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 uppercase italic">Tutoria Manager</h1>
+              <p className="text-[10px] text-slate-500 font-bold">Bem-vindo, {user?.name || 'Usuário'}</p>
+            </div>
+          </div>
+          <button onClick={() => logout()} className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-bold text-sm transition">
+            <LogOut size={16} /> SAIR
+          </button>
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 flex gap-8 overflow-x-auto">
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+            { id: 'ranking', label: 'Ranking', icon: Trophy },
+            { id: 'analytics', label: 'Analítica', icon: LineChart },
+            { id: 'notifications', label: 'Notificações', icon: Bell },
+            { id: 'calendar', label: 'Calendário', icon: Calendar },
+            { id: 'gamification', label: 'Gamificação', icon: Award },
+            { id: 'settings', label: 'Configurações', icon: SettingsIcon },
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-4 px-2 font-black text-xs uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-slate-600 hover:text-slate-800'
+                }`}
+              >
+                <Icon size={16} /> {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {tutoriasLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="animate-spin text-orange-500" size={40} />
+          </div>
+        ) : activeTab === 'dashboard' ? (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <StatCard label="Total Registado" val={tutoriasArray.length} icon={ClipboardList} colorClass="bg-orange-50 text-orange-600" />
+              <StatCard label="Pendentes" val={tutoriasArray.filter((t: any) => t.status === 'scheduled').length} icon={Clock} colorClass="bg-blue-50 text-blue-600" />
+              <StatCard label="Em Curso" val={tutoriasArray.filter((t: any) => t.status === 'in_progress').length} icon={PlayCircle} colorClass="bg-orange-50 text-orange-600" />
+              <StatCard label="Concluídas" val={tutoriasArray.filter((t: any) => t.status === 'completed').length} icon={CheckCircle} colorClass="bg-blue-50 text-blue-600" />
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="px-6 py-5 border-b flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+                <h2 className="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2">
+                   <BarChart3 size={16} className="text-orange-500" /> Painel de Atividades
+                </h2>
+                <button onClick={() => setIsModalOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-orange-200 transition-all active:scale-95">
+                  <Plus size={14} /> Novo Agendamento
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600">Disciplina / Filial</th>
+                      <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600">Professor</th>
+                      <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600">Status / Check-in</th>
+                      <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600">Horário</th>
+                      <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600">Gestão</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tutoriasArray.map((tutoria: any) => (
+                      <tr key={tutoria.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                        <td className="px-4 py-5">
+                          <div>
+                            <p className="font-black text-slate-800">{tutoria.disciplina}</p>
+                            <p className="text-xs text-slate-500 font-bold">● {tutoria.instituicao}</p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-5">
+                          <p className="font-black text-slate-800">{tutoria.professor}</p>
+                        </td>
+                        <td className="px-4 py-5">
+                          <select
+                            value={tutoria.status}
+                            onChange={(e) => handleUpdateStatus(tutoria.id, e.target.value)}
+                            className="px-3 py-1 rounded-lg text-xs font-black uppercase border-0 focus:ring-2 focus:ring-orange-500"
+                          >
+                            <option value="scheduled">AGENDADA</option>
+                            <option value="in_progress">EM CURSO</option>
+                            <option value="completed">CONCLUÍDA</option>
+                          </select>
+                          {tutoria.checkin && <p className="text-xs text-green-600 font-bold mt-1">✓ CHECK-IN {tutoria.checkin.timestamp}</p>}
+                        </td>
+                        <td className="px-4 py-5">
+                          <p className="font-black text-slate-800">{tutoria.data}</p>
+                          <p className="text-xs text-slate-500 font-bold">{tutoria.horario} - {tutoria.horarioTermino}</p>
+                        </td>
+                        <td className="px-4 py-5">
+                          <div className="flex gap-2">
+                            <button onClick={() => setActiveCheckin(tutoria)} className="px-3 py-1 bg-blue-500 text-white rounded-lg text-xs font-bold hover:bg-blue-600">Check-in</button>
+                            <button onClick={() => setActiveFeedback(tutoria)} className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Feedback</button>
+                            <button onClick={() => setDeleteConfirmation(tutoria.id)} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600">Deletar</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'analytics' ? (
+          <AnalyticsTab tutorias={tutoriasArray as any} />
+        ) : activeTab === 'notifications' ? (
+          <NotificationsTab tutorias={tutoriasArray as any} />
+        ) : activeTab === 'calendar' ? (
+          <CalendarTab tutorias={tutoriasArray as any} />
+        ) : activeTab === 'gamification' ? (
+          <div className="space-y-6">
+            <Leaderboard professors={[]} />
+            <MedalsShowcase professors={[]} />
+            <AchievementsShowcase achievements={[]} />
+          </div>
+        ) : activeTab === 'settings' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <h3 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-orange-500"><BookOpen size={16} /> Disciplinas</h3>
+              <div className="flex gap-2 mb-6">
+                <input 
+                  type="text" 
+                  placeholder="Nome..." 
+                  className="flex-1 px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                  value={inputDisciplina} 
+                  onChange={(e) => setInputDisciplina(e.target.value)} 
+                />
+                <button onClick={() => handleAddItem('disc', inputDisciplina)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
+              </div>
+              <div className="space-y-2">
+                {disciplinas.map((d: string) => (
+                  <div key={d} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                    <span>{d}</span>
+                    <button onClick={() => handleRemoveItem('disc', d)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <h3 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-orange-500"><User size={16} /> Professores</h3>
+              <div className="flex gap-2 mb-6">
+                <input 
+                  type="text" 
+                  placeholder="Nome..." 
+                  className="flex-1 px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                  value={inputProfessor} 
+                  onChange={(e) => setInputProfessor(e.target.value)} 
+                />
+                <button onClick={() => handleAddItem('prof', inputProfessor)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
+              </div>
+              <div className="space-y-2">
+                {professores.map((p: string) => (
+                  <div key={p} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                    <span>{p}</span>
+                    <button onClick={() => handleRemoveItem('prof', p)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <h3 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-orange-500"><Building2 size={16} /> Filiais</h3>
+              <div className="flex gap-2 mb-6">
+                <input 
+                  type="text" 
+                  placeholder="Nome..." 
+                  className="flex-1 px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                  value={inputInstituicao} 
+                  onChange={(e) => setInputInstituicao(e.target.value)} 
+                />
+                <button onClick={() => handleAddItem('inst', inputInstituicao)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
+              </div>
+              <div className="space-y-2">
+                {instituicoes.map((i: string) => (
+                  <div key={i} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                    <span>{i}</span>
+                    <button onClick={() => handleRemoveItem('inst', i)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'ranking' ? (
+          <Leaderboard professors={[]} />
+        ) : null}
+      </main>
+
+      {/* Modal - Nova Tutoria */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-black text-slate-800 mb-6">Nova Tutoria</h2>
+            <form onSubmit={handleAddTutoria} className="space-y-4">
+              <input type="text" placeholder="Disciplina" value={newTutoria.disciplina} onChange={(e) => setNewTutoria({...newTutoria, disciplina: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <input type="text" placeholder="Professor" value={newTutoria.professor} onChange={(e) => setNewTutoria({...newTutoria, professor: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <input type="text" placeholder="Instituição" value={newTutoria.instituicao} onChange={(e) => setNewTutoria({...newTutoria, instituicao: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <input type="text" placeholder="Tutor" value={newTutoria.tutor} onChange={(e) => setNewTutoria({...newTutoria, tutor: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <input type="date" value={newTutoria.data} onChange={(e) => setNewTutoria({...newTutoria, data: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <input type="time" value={newTutoria.horario} onChange={(e) => setNewTutoria({...newTutoria, horario: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <input type="time" value={newTutoria.horarioTermino} onChange={(e) => setNewTutoria({...newTutoria, horarioTermino: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <div className="flex gap-2">
+                <button type="submit" className="flex-1 bg-orange-500 text-white py-2 rounded-lg font-bold hover:bg-orange-600">Criar</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal - Check-in */}
+      {activeCheckin && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-black text-slate-800 mb-6">Check-in</h2>
+            <form onSubmit={handleCheckinSubmit} className="space-y-4">
+              <textarea placeholder="Descrição (opcional)" value={checkinForm.description} onChange={(e) => setCheckinForm({...checkinForm, description: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+              <div className="flex gap-2">
+                <button type="submit" className="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600">Confirmar</button>
+                <button type="button" onClick={() => setActiveCheckin(null)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal - Feedback */}
+      {activeFeedback && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-black text-slate-800 mb-6">Feedback</h2>
+            <form onSubmit={handleSubmitFeedback} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold mb-2">Pontualidade</label>
+                <select value={feedbackForm.pontualidade} onChange={(e) => setFeedbackForm({...feedbackForm, pontualidade: Number(e.target.value)})} className="w-full px-4 py-2 border rounded-lg">
+                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">Qualidade de Áudio</label>
+                <select value={feedbackForm.audio} onChange={(e) => setFeedbackForm({...feedbackForm, audio: Number(e.target.value)})} className="w-full px-4 py-2 border rounded-lg">
+                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">Qualidade do Conteúdo</label>
+                <select value={feedbackForm.conteudo} onChange={(e) => setFeedbackForm({...feedbackForm, conteudo: Number(e.target.value)})} className="w-full px-4 py-2 border rounded-lg">
+                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <textarea placeholder="Comentários" value={feedbackForm.comentarios} onChange={(e) => setFeedbackForm({...feedbackForm, comentarios: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
+              <div className="flex gap-2">
+                <button type="submit" className="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600">Enviar</button>
+                <button type="button" onClick={() => setActiveFeedback(null)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal - Confirmação de Deleção */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+            <h2 className="text-2xl font-black text-slate-800 mb-4">Confirmar Deleção</h2>
+            <p className="text-slate-600 mb-6">Tem certeza que deseja deletar esta tutoria?</p>
+            <div className="flex gap-2">
+              <button onClick={() => handleDeleteTutoria(deleteConfirmation)} className="flex-1 bg-red-500 text-white py-2 rounded-lg font-bold hover:bg-red-600">Deletar</button>
+              <button onClick={() => setDeleteConfirmation(null)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
