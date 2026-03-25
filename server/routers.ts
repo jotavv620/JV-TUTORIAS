@@ -10,6 +10,11 @@ import {
   broadcastFeedbackUpdate,
   broadcastCheckinUpdate,
 } from "./_core/websocket";
+import {
+  sendProfessorTutoriaEmail,
+  sendBolsistaTutoriaEmail,
+  TutoriaEmailData,
+} from "./_core/emailService";
 
 export const appRouter = router({
   system: systemRouter,
@@ -46,6 +51,35 @@ export const appRouter = router({
           status: 'scheduled',
         });
         broadcastTutoriaUpdate('created', result);
+        
+        // Send emails to professor and bolsista
+        try {
+          const emailData: TutoriaEmailData = {
+            disciplina: input.disciplina,
+            professor: input.professor,
+            tutor: input.tutor,
+            data: input.data,
+            horario: input.horario,
+            horarioTermino: input.horarioTermino,
+            instituicao: input.instituicao,
+          };
+          
+          // Get professor email
+          const professorData = await db.getProfessorByName(input.professor);
+          if (professorData?.email) {
+            await sendProfessorTutoriaEmail(professorData.email, emailData);
+          }
+          
+          // Get bolsista email
+          const bolsistaData = await db.getBolsistaByName(input.tutor);
+          if (bolsistaData?.email) {
+            await sendBolsistaTutoriaEmail(bolsistaData.email, emailData);
+          }
+        } catch (error) {
+          console.error('[Email] Error sending tutoria emails:', error);
+          // Don't throw - email failure shouldn't block tutoria creation
+        }
+        
         return result;
       }),
     

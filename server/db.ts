@@ -437,3 +437,17 @@ export async function updateProfessorEmail(professorId: number, email: string) {
   
   return await db.update(professores).set({ email }).where(eq(professores.id, professorId));
 }
+
+export async function getProfessorByName(nome: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(professores).where(eq(professores.nome, nome)).limit(1);
+  return result[0] || null;
+}
+
+export async function getBolsistaByName(nome: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(bolsistas).where(eq(bolsistas.nome, nome)).limit(1);
+  return result[0] || null;
+}
