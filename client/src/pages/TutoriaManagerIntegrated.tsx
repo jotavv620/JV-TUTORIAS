@@ -426,7 +426,7 @@ export default function TutoriaManagerIntegrated() {
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
               <h3 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-orange-500"><User size={16} /> Professores</h3>
-              <div className="flex gap-2 mb-6">
+              <div className="flex gap-2 mb-2">
                 <input 
                   type="text" 
                   placeholder="Nome..." 
@@ -436,6 +436,11 @@ export default function TutoriaManagerIntegrated() {
                 />
                 <button onClick={() => handleAddItem('prof', inputProfessor)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
               </div>
+              <input 
+                type="email" 
+                placeholder="Email do professor..." 
+                className="w-full px-4 py-2 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200 mb-6" 
+              />
               <div className="space-y-2">
                 {professores.map((p: string) => (
                   <div key={p} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
@@ -465,6 +470,33 @@ export default function TutoriaManagerIntegrated() {
                     <button onClick={() => handleRemoveItem('inst', i)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Bolsistas Section */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <h3 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-orange-500"><Trophy size={16} /> Bolsistas</h3>
+              <div className="grid grid-cols-1 gap-4 mb-6">
+                <input 
+                  type="text" 
+                  placeholder="Nome do bolsista..." 
+                  className="px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                />
+                <input 
+                  type="email" 
+                  placeholder="Email..." 
+                  className="px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                />
+              </div>
+              <button className="w-full p-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} />Adicionar Bolsista</button>
+              <div className="space-y-2 mt-4">
+                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                  <div>
+                    <p>João Silva</p>
+                    <p className="text-slate-400">joao@email.com</p>
+                  </div>
+                  <button className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                </div>
               </div>
             </div>
           </div>

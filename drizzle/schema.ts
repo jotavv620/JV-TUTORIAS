@@ -87,6 +87,7 @@ export const professores = mysqlTable("professores", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   nome: varchar("nome", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -99,6 +100,18 @@ export const instituicoes = mysqlTable("instituicoes", {
   nome: varchar("nome", { length: 255 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// Bolsistas table
+export const bolsistas = mysqlTable("bolsistas", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Bolsista = typeof bolsistas.$inferSelect;
+export type InsertBolsista = typeof bolsistas.$inferInsert;
 
 export type Instituicao = typeof instituicoes.$inferSelect;
 export type InsertInstituicao = typeof instituicoes.$inferInsert;

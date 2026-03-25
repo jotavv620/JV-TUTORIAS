@@ -214,12 +214,47 @@ export const appRouter = router({
         };
       }).sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
 
-      return {
+       return {
         data: ranking,
         timestamp: new Date().toISOString(),
       };
     }),
   }),
-});
 
+  // Bolsista router
+  bolsista: router({
+    list: protectedProcedure.query(async () => {
+      return await db.getAllBolsistas();
+    }),
+    
+    create: protectedProcedure
+      .input(z.object({
+        nome: z.string(),
+        email: z.string().email(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.createBolsista(ctx.user.id, input.nome, input.email);
+      }),
+    
+    delete: protectedProcedure
+      .input(z.object({
+        bolsistaId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.deleteBolsista(input.bolsistaId);
+      }),
+  }),
+
+  // Professor email router
+  professor: router({
+    updateEmail: protectedProcedure
+      .input(z.object({
+        professorId: z.number(),
+        email: z.string().email(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.updateProfessorEmail(input.professorId, input.email);
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;

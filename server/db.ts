@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard } from "../drizzle/schema";
+import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -378,4 +378,44 @@ export function determineMedal(points: number): 'none' | 'bronze' | 'silver' | '
   if (points >= 150) return 'silver';
   if (points >= 50) return 'bronze';
   return 'none';
+}
+
+// Bolsista functions
+export async function createBolsista(userId: number, nome: string, email: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(bolsistas).values({
+    userId,
+    nome,
+    email,
+  });
+}
+
+export async function getBolsistasByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select().from(bolsistas).where(eq(bolsistas.userId, userId));
+}
+
+export async function getAllBolsistas() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.select().from(bolsistas);
+}
+
+export async function deleteBolsista(bolsistaId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.delete(bolsistas).where(eq(bolsistas.id, bolsistaId));
+}
+
+export async function updateProfessorEmail(professorId: number, email: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.update(professores).set({ email }).where(eq(professores.id, professorId));
 }
