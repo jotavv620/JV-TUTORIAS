@@ -53,13 +53,24 @@ export default function TutoriaManagerIntegrated() {
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // tRPC queries - Tutorias (with real-time polling)
+  const utils = trpc.useUtils();
   const { data: tutorias = [], isLoading: tutoriasLoading, refetch: refetchTutorias } = 
     trpc.tutorias.list.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
-  const createTutoriaMutation = trpc.tutorias.create.useMutation();
-  const updateStatusMutation = trpc.tutorias.updateStatus.useMutation();
-  const deleteTutoriaMutation = trpc.tutorias.delete.useMutation();
-  const createFeedbackMutation = trpc.feedback.create.useMutation();
-  const createCheckinMutation = trpc.checkin.create.useMutation();
+  const createTutoriaMutation = trpc.tutorias.create.useMutation({
+    onSuccess: () => utils.tutorias.list.invalidate(),
+  });
+  const updateStatusMutation = trpc.tutorias.updateStatus.useMutation({
+    onSuccess: () => utils.tutorias.list.invalidate(),
+  });
+  const deleteTutoriaMutation = trpc.tutorias.delete.useMutation({
+    onSuccess: () => utils.tutorias.list.invalidate(),
+  });
+  const createFeedbackMutation = trpc.feedback.create.useMutation({
+    onSuccess: () => utils.tutorias.list.invalidate(),
+  });
+  const createCheckinMutation = trpc.checkin.create.useMutation({
+    onSuccess: () => utils.tutorias.list.invalidate(),
+  });
 
   // tRPC queries - Configuration (with real-time polling every 3 seconds)
   const { data: disciplinasData = [], refetch: refetchDisciplinas } = 
@@ -70,12 +81,24 @@ export default function TutoriaManagerIntegrated() {
     trpc.config.getInstituicoes.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
   
   // Mutations for configuration
-  const createDisciplinaMutation = trpc.config.createDisciplina.useMutation();
-  const deleteDisciplinaMutation = trpc.config.deleteDisciplina.useMutation();
-  const createProfessorMutation = trpc.config.createProfessor.useMutation();
-  const deleteProfessorMutation = trpc.config.deleteProfessor.useMutation();
-  const createInstituicaoMutation = trpc.config.createInstituicao.useMutation();
-  const deleteInstituicaoMutation = trpc.config.deleteInstituicao.useMutation();
+  const createDisciplinaMutation = trpc.config.createDisciplina.useMutation({
+    onSuccess: () => utils.config.getDisciplinas.invalidate(),
+  });
+  const deleteDisciplinaMutation = trpc.config.deleteDisciplina.useMutation({
+    onSuccess: () => utils.config.getDisciplinas.invalidate(),
+  });
+  const createProfessorMutation = trpc.config.createProfessor.useMutation({
+    onSuccess: () => utils.config.getProfessores.invalidate(),
+  });
+  const deleteProfessorMutation = trpc.config.deleteProfessor.useMutation({
+    onSuccess: () => utils.config.getProfessores.invalidate(),
+  });
+  const createInstituicaoMutation = trpc.config.createInstituicao.useMutation({
+    onSuccess: () => utils.config.getInstituicoes.invalidate(),
+  });
+  const deleteInstituicaoMutation = trpc.config.deleteInstituicao.useMutation({
+    onSuccess: () => utils.config.getInstituicoes.invalidate(),
+  });
 
   // Convert data to arrays of names
   const disciplinas = disciplinasData.map((d: any) => d.nome || d);

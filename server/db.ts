@@ -156,6 +156,12 @@ export async function getDisciplinasByUserId(userId: number) {
   return await db.select().from(disciplinas).where(eq(disciplinas.userId, userId));
 }
 
+export async function getAllDisciplinas() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(disciplinas);
+}
+
 export async function createDisciplina(userId: number, nome: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -174,6 +180,12 @@ export async function getProfessoresByUserId(userId: number) {
   return await db.select().from(professores).where(eq(professores.userId, userId));
 }
 
+export async function getAllProfessores() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(professores);
+}
+
 export async function createProfessor(userId: number, nome: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -190,6 +202,12 @@ export async function getInstituicoesByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(instituicoes).where(eq(instituicoes.userId, userId));
+}
+
+export async function getAllInstituicoes() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(instituicoes);
 }
 
 export async function createInstituicao(userId: number, nome: string) {

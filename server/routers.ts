@@ -4,6 +4,12 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import {
+  broadcastTutoriaUpdate,
+  broadcastConfigUpdate,
+  broadcastFeedbackUpdate,
+  broadcastCheckinUpdate,
+} from "./_core/websocket";
 
 export const appRouter = router({
   system: systemRouter,
@@ -35,10 +41,12 @@ export const appRouter = router({
         horarioTermino: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        return await db.createTutoria(ctx.user.id, {
+        const result = await db.createTutoria(ctx.user.id, {
           ...input,
           status: 'scheduled',
         });
+        broadcastTutoriaUpdate('created', result);
+        return result;
       }),
     
     updateStatus: protectedProcedure
@@ -47,13 +55,17 @@ export const appRouter = router({
         status: z.enum(['scheduled', 'in_progress', 'completed']),
       }))
       .mutation(async ({ input }) => {
-        return await db.updateTutoriaStatus(input.tutoriaId, input.status);
+        const result = await db.updateTutoriaStatus(input.tutoriaId, input.status);
+        broadcastTutoriaUpdate('updated', result);
+        return result;
       }),
     
     delete: protectedProcedure
       .input(z.object({ tutoriaId: z.number() }))
       .mutation(async ({ input }) => {
-        return await db.deleteTutoria(input.tutoriaId);
+        const result = await db.deleteTutoria(input.tutoriaId);
+        broadcastTutoriaUpdate('deleted', { id: input.tutoriaId });
+        return result;
       }),
   }),
 
@@ -68,12 +80,14 @@ export const appRouter = router({
         comentarios: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        return await db.createFeedback(input.tutoriaId, {
+        const result = await db.createFeedback(input.tutoriaId, {
           pontualidade: input.pontualidade,
           audio: input.audio,
           conteudo: input.conteudo,
           comentarios: input.comentarios || null,
         });
+        broadcastFeedbackUpdate('created', result);
+        return result;
       }),
     
     getByTutoriaId: protectedProcedure
@@ -92,10 +106,12 @@ export const appRouter = router({
         description: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        return await db.createCheckin(input.tutoriaId, {
+        const result = await db.createCheckin(input.tutoriaId, {
           timestamp: input.timestamp,
           description: input.description || null,
         });
+        broadcastCheckinUpdate('created', result);
+        return result;
       }),
     
     getByTutoriaId: protectedProcedure
@@ -108,54 +124,66 @@ export const appRouter = router({
   // Configuracoes router
   config: router({
     // Disciplinas
-    getDisciplinas: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getDisciplinasByUserId(ctx.user.id);
+    getDisciplinas: protectedProcedure.query(async () => {
+      return await db.getAllDisciplinas();
     }),
     
     createDisciplina: protectedProcedure
       .input(z.object({ nome: z.string() }))
       .mutation(async ({ ctx, input }) => {
-        return await db.createDisciplina(ctx.user.id, input.nome);
+        const result = await db.createDisciplina(ctx.user.id, input.nome);
+        broadcastConfigUpdate({ type: 'disciplina', action: 'created', data: result });
+        return result;
       }),
     
     deleteDisciplina: protectedProcedure
       .input(z.object({ disciplinaId: z.number() }))
       .mutation(async ({ input }) => {
-        return await db.deleteDisciplina(input.disciplinaId);
+        const result = await db.deleteDisciplina(input.disciplinaId);
+        broadcastConfigUpdate({ type: 'disciplina', action: 'deleted', id: input.disciplinaId });
+        return result;
       }),
 
     // Professores
-    getProfessores: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getProfessoresByUserId(ctx.user.id);
+    getProfessores: protectedProcedure.query(async () => {
+      return await db.getAllProfessores();
     }),
     
     createProfessor: protectedProcedure
       .input(z.object({ nome: z.string() }))
       .mutation(async ({ ctx, input }) => {
-        return await db.createProfessor(ctx.user.id, input.nome);
+        const result = await db.createProfessor(ctx.user.id, input.nome);
+        broadcastConfigUpdate({ type: 'professor', action: 'created', data: result });
+        return result;
       }),
     
     deleteProfessor: protectedProcedure
       .input(z.object({ professorId: z.number() }))
       .mutation(async ({ input }) => {
-        return await db.deleteProfessor(input.professorId);
+        const result = await db.deleteProfessor(input.professorId);
+        broadcastConfigUpdate({ type: 'professor', action: 'deleted', id: input.professorId });
+        return result;
       }),
 
     // Instituicoes
-    getInstituicoes: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getInstituicoesByUserId(ctx.user.id);
+    getInstituicoes: protectedProcedure.query(async () => {
+      return await db.getAllInstituicoes();
     }),
     
     createInstituicao: protectedProcedure
       .input(z.object({ nome: z.string() }))
       .mutation(async ({ ctx, input }) => {
-        return await db.createInstituicao(ctx.user.id, input.nome);
+        const result = await db.createInstituicao(ctx.user.id, input.nome);
+        broadcastConfigUpdate({ type: 'instituicao', action: 'created', data: result });
+        return result;
       }),
     
     deleteInstituicao: protectedProcedure
       .input(z.object({ instituicaoId: z.number() }))
       .mutation(async ({ input }) => {
-        return await db.deleteInstituicao(input.instituicaoId);
+        const result = await db.deleteInstituicao(input.instituicaoId);
+        broadcastConfigUpdate({ type: 'instituicao', action: 'deleted', id: input.instituicaoId });
+        return result;
       }),
   }),
 
@@ -233,7 +261,9 @@ export const appRouter = router({
         email: z.string().email(),
       }))
       .mutation(async ({ ctx, input }) => {
-        return await db.createBolsista(ctx.user.id, input.nome, input.email);
+        const result = await db.createBolsista(ctx.user.id, input.nome, input.email);
+        broadcastConfigUpdate({ type: 'bolsista', action: 'created', data: result });
+        return result;
       }),
     
     delete: protectedProcedure
@@ -241,7 +271,9 @@ export const appRouter = router({
         bolsistaId: z.number(),
       }))
       .mutation(async ({ input }) => {
-        return await db.deleteBolsista(input.bolsistaId);
+        const result = await db.deleteBolsista(input.bolsistaId);
+        broadcastConfigUpdate({ type: 'bolsista', action: 'deleted', id: input.bolsistaId });
+        return result;
       }),
   }),
 
@@ -253,7 +285,9 @@ export const appRouter = router({
         email: z.string().email(),
       }))
       .mutation(async ({ input }) => {
-        return await db.updateProfessorEmail(input.professorId, input.email);
+        const result = await db.updateProfessorEmail(input.professorId, input.email);
+        broadcastConfigUpdate({ type: 'professor', action: 'updated', data: result });
+        return result;
       }),
   }),
 });
