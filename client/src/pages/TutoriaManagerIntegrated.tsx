@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { getLoginUrl } from '@/const';
 import { trpc } from '@/lib/trpc';
@@ -50,20 +50,41 @@ export default function TutoriaManagerIntegrated() {
   const { isAuthenticated, user, logout, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // tRPC queries and mutations
-  const { data: tutorias = [], isLoading: tutoriasLoading, refetch: refetchTutorias } = trpc.tutorias.list.useQuery(undefined, { enabled: isAuthenticated });
+  // tRPC queries - Tutorias (with real-time polling)
+  const { data: tutorias = [], isLoading: tutoriasLoading, refetch: refetchTutorias } = 
+    trpc.tutorias.list.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
   const createTutoriaMutation = trpc.tutorias.create.useMutation();
   const updateStatusMutation = trpc.tutorias.updateStatus.useMutation();
   const deleteTutoriaMutation = trpc.tutorias.delete.useMutation();
   const createFeedbackMutation = trpc.feedback.create.useMutation();
   const createCheckinMutation = trpc.checkin.create.useMutation();
 
+  // tRPC queries - Configuration (with real-time polling every 3 seconds)
+  const { data: disciplinasData = [], refetch: refetchDisciplinas } = 
+    trpc.config.getDisciplinas.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
+  const { data: professoresData = [], refetch: refetchProfessores } = 
+    trpc.config.getProfessores.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
+  const { data: instituicoesData = [], refetch: refetchInstituicoes } = 
+    trpc.config.getInstituicoes.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
+  
+  // Mutations for configuration
+  const createDisciplinaMutation = trpc.config.createDisciplina.useMutation();
+  const deleteDisciplinaMutation = trpc.config.deleteDisciplina.useMutation();
+  const createProfessorMutation = trpc.config.createProfessor.useMutation();
+  const deleteProfessorMutation = trpc.config.deleteProfessor.useMutation();
+  const createInstituicaoMutation = trpc.config.createInstituicao.useMutation();
+  const deleteInstituicaoMutation = trpc.config.deleteInstituicao.useMutation();
+
+  // Convert data to arrays of names
+  const disciplinas = disciplinasData.map((d: any) => d.nome || d);
+  const professores = professoresData.map((p: any) => p.nome || p);
+  const instituicoes = instituicoesData.map((i: any) => i.nome || i);
+
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeCheckin, setActiveCheckin] = useState<Tutoria | null>(null);
   const [activeFeedback, setActiveFeedback] = useState<Tutoria | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
-  const [loadingAI, setLoadingAI] = useState(false);
 
   const [newTutoria, setNewTutoria] = useState<Omit<Tutoria, 'id' | 'status' | 'feedback' | 'checkin'>>({
     instituicao: '',
@@ -77,10 +98,6 @@ export default function TutoriaManagerIntegrated() {
 
   const [checkinForm, setCheckinForm] = useState({ description: '' });
   const [feedbackForm, setFeedbackForm] = useState<FeedbackForm>({ pontualidade: 0, audio: 0, conteudo: 0, comentarios: '' });
-
-  const [disciplinas, setDisciplinas] = useState(['Matemática', 'Física', 'Química', 'Português']);
-  const [professores, setProfessores] = useState(['Dr. Silva', 'Dra. Costa', 'Prof. João']);
-  const [instituicoes, setInstituicoes] = useState(['Campus A', 'Campus B', 'Campus C']);
 
   const [inputDisciplina, setInputDisciplina] = useState('');
   const [inputProfessor, setInputProfessor] = useState('');
@@ -97,7 +114,7 @@ export default function TutoriaManagerIntegrated() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-md text-center">
+        <div className="text-center">
           <div className="p-4 bg-orange-500 rounded-2xl w-fit mx-auto mb-6">
             <BookOpen size={32} className="text-white" />
           </div>
@@ -188,66 +205,90 @@ export default function TutoriaManagerIntegrated() {
     }
   };
 
-  const handleAddItem = (type: string, value: string) => {
+  const handleAddItem = async (type: string, value: string) => {
     if (!value.trim()) return;
-    if (type === 'disc') {
-      setDisciplinas([...disciplinas, value]);
-      setInputDisciplina('');
-    } else if (type === 'prof') {
-      setProfessores([...professores, value]);
-      setInputProfessor('');
-    } else if (type === 'inst') {
-      setInstituicoes([...instituicoes, value]);
-      setInputInstituicao('');
+    try {
+      if (type === 'disc') {
+        await createDisciplinaMutation.mutateAsync({ nome: value });
+        setInputDisciplina('');
+        refetchDisciplinas();
+        toast.success('Disciplina adicionada!');
+      } else if (type === 'prof') {
+        await createProfessorMutation.mutateAsync({ nome: value });
+        setInputProfessor('');
+        refetchProfessores();
+        toast.success('Professor adicionado!');
+      } else if (type === 'inst') {
+        await createInstituicaoMutation.mutateAsync({ nome: value });
+        setInputInstituicao('');
+        refetchInstituicoes();
+        toast.success('Filial adicionada!');
+      }
+    } catch (error) {
+      toast.error('Erro ao adicionar item');
+      console.error(error);
     }
   };
 
-  const handleRemoveItem = (type: string, value: string) => {
-    if (type === 'disc') setDisciplinas(disciplinas.filter(d => d !== value));
-    else if (type === 'prof') setProfessores(professores.filter(p => p !== value));
-    else if (type === 'inst') setInstituicoes(instituicoes.filter(i => i !== value));
+  const handleRemoveItem = async (type: string, value: string) => {
+    try {
+      if (type === 'disc') {
+        const item = disciplinasData.find((d: any) => (d.nome || d) === value);
+        if (item?.id) {
+          await deleteDisciplinaMutation.mutateAsync({ disciplinaId: item.id });
+          refetchDisciplinas();
+          toast.success('Disciplina removida!');
+        }
+      } else if (type === 'prof') {
+        const item = professoresData.find((p: any) => (p.nome || p) === value);
+        if (item?.id) {
+          await deleteProfessorMutation.mutateAsync({ professorId: item.id });
+          refetchProfessores();
+          toast.success('Professor removido!');
+        }
+      } else if (type === 'inst') {
+        const item = instituicoesData.find((i: any) => (i.nome || i) === value);
+        if (item?.id) {
+          await deleteInstituicaoMutation.mutateAsync({ instituicaoId: item.id });
+          refetchInstituicoes();
+          toast.success('Filial removida!');
+        }
+      }
+    } catch (error) {
+      toast.error('Erro ao remover item');
+      console.error(error);
+    }
   };
-
-  const renderStars = (rating: number) => (
-    <>
-      {[...Array(5)].map((_, i) => (
-        <Star key={i} size={14} className={i < rating ? 'fill-orange-400 text-orange-400' : 'text-slate-200'} />
-      ))}
-    </>
-  );
 
   const tutoriasArray = Array.isArray(tutorias) ? tutorias : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-slate-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-orange-500 rounded-xl">
-              <BookOpen size={20} className="text-white" />
+            <div className="p-2 bg-orange-500 rounded-lg">
+              <BookOpen size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-800 uppercase italic">Tutoria Manager</h1>
-              <p className="text-[10px] text-slate-500 font-bold">Bem-vindo, {user?.name || 'Usuário'}</p>
+              <h1 className="font-black text-slate-800 uppercase text-sm tracking-widest">Tutoria Manager</h1>
+              <p className="text-xs text-slate-500">Bem-vindo, {user?.name || 'Usuário'}</p>
             </div>
           </div>
-          <button onClick={() => logout()} className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-bold text-sm transition">
-            <LogOut size={16} /> SAIR
+          <button onClick={logout} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-bold text-xs uppercase tracking-widest transition-all">
+            <LogOut size={14} /> SAIR
           </button>
         </div>
-      </header>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 flex gap-8 overflow-x-auto">
+        {/* Tabs */}
+        <div className="max-w-7xl mx-auto px-6 flex gap-1 overflow-x-auto border-t border-slate-100">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-            { id: 'ranking', label: 'Ranking', icon: Trophy },
             { id: 'analytics', label: 'Analítica', icon: LineChart },
             { id: 'notifications', label: 'Notificações', icon: Bell },
             { id: 'calendar', label: 'Calendário', icon: Calendar },
-            { id: 'gamification', label: 'Gamificação', icon: Award },
+            { id: 'gamification', label: 'Gamificação', icon: Trophy },
             { id: 'settings', label: 'Configurações', icon: SettingsIcon },
           ].map(tab => {
             const Icon = tab.icon;
@@ -266,7 +307,7 @@ export default function TutoriaManagerIntegrated() {
             );
           })}
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
@@ -425,8 +466,6 @@ export default function TutoriaManagerIntegrated() {
               </div>
             </div>
           </div>
-        ) : activeTab === 'ranking' ? (
-          <Leaderboard professors={[]} />
         ) : null}
       </main>
 
@@ -451,19 +490,33 @@ export default function TutoriaManagerIntegrated() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold mb-2 text-slate-700">Instituição *</label>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Filial *</label>
                 <select value={newTutoria.instituicao} onChange={(e) => setNewTutoria({...newTutoria, instituicao: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
-                  <option value="">-- Selecione uma instituição --</option>
+                  <option value="">-- Selecione uma filial --</option>
                   {instituicoes.map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
-              <input type="text" placeholder="Bolsista/Tutor" value={newTutoria.tutor} onChange={(e) => setNewTutoria({...newTutoria, tutor: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
-              <input type="date" value={newTutoria.data} onChange={(e) => setNewTutoria({...newTutoria, data: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
-              <input type="time" value={newTutoria.horario} onChange={(e) => setNewTutoria({...newTutoria, horario: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
-              <input type="time" value={newTutoria.horarioTermino} onChange={(e) => setNewTutoria({...newTutoria, horarioTermino: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 bg-orange-500 text-white py-2 rounded-lg font-bold hover:bg-orange-600">Criar</button>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+              <div>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Tutor</label>
+                <input type="text" value={newTutoria.tutor} onChange={(e) => setNewTutoria({...newTutoria, tutor: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Data *</label>
+                <input type="date" value={newTutoria.data} onChange={(e) => setNewTutoria({...newTutoria, data: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-slate-700">Início *</label>
+                  <input type="time" value={newTutoria.horario} onChange={(e) => setNewTutoria({...newTutoria, horario: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2 text-slate-700">Término *</label>
+                  <input type="time" value={newTutoria.horarioTermino} onChange={(e) => setNewTutoria({...newTutoria, horarioTermino: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button type="submit" className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-black uppercase text-sm transition-all">Criar</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 py-3 rounded-lg font-black uppercase text-sm transition-all">Cancelar</button>
               </div>
             </form>
           </div>
@@ -476,10 +529,13 @@ export default function TutoriaManagerIntegrated() {
           <div className="bg-white rounded-2xl p-8 max-w-md w-full">
             <h2 className="text-2xl font-black text-slate-800 mb-6">Check-in</h2>
             <form onSubmit={handleCheckinSubmit} className="space-y-4">
-              <textarea placeholder="Descrição (opcional)" value={checkinForm.description} onChange={(e) => setCheckinForm({...checkinForm, description: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600">Confirmar</button>
-                <button type="button" onClick={() => setActiveCheckin(null)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+              <div>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Descrição</label>
+                <textarea value={checkinForm.description} onChange={(e) => setCheckinForm({description: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" rows={4}></textarea>
+              </div>
+              <div className="flex gap-3">
+                <button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-black uppercase text-sm transition-all">Confirmar</button>
+                <button type="button" onClick={() => setActiveCheckin(null)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 py-3 rounded-lg font-black uppercase text-sm transition-all">Cancelar</button>
               </div>
             </form>
           </div>
@@ -489,31 +545,28 @@ export default function TutoriaManagerIntegrated() {
       {/* Modal - Feedback */}
       {activeFeedback && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-black text-slate-800 mb-6">Feedback</h2>
             <form onSubmit={handleSubmitFeedback} className="space-y-4">
               <div>
-                <label className="block text-sm font-bold mb-2">Pontualidade</label>
-                <select value={feedbackForm.pontualidade} onChange={(e) => setFeedbackForm({...feedbackForm, pontualidade: Number(e.target.value)})} className="w-full px-4 py-2 border rounded-lg">
-                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Pontualidade (0-5)</label>
+                <input type="number" min="0" max="5" value={feedbackForm.pontualidade} onChange={(e) => setFeedbackForm({...feedbackForm, pontualidade: Number(e.target.value)})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
               </div>
               <div>
-                <label className="block text-sm font-bold mb-2">Qualidade de Áudio</label>
-                <select value={feedbackForm.audio} onChange={(e) => setFeedbackForm({...feedbackForm, audio: Number(e.target.value)})} className="w-full px-4 py-2 border rounded-lg">
-                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Áudio (0-5)</label>
+                <input type="number" min="0" max="5" value={feedbackForm.audio} onChange={(e) => setFeedbackForm({...feedbackForm, audio: Number(e.target.value)})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
               </div>
               <div>
-                <label className="block text-sm font-bold mb-2">Qualidade do Conteúdo</label>
-                <select value={feedbackForm.conteudo} onChange={(e) => setFeedbackForm({...feedbackForm, conteudo: Number(e.target.value)})} className="w-full px-4 py-2 border rounded-lg">
-                  {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Conteúdo (0-5)</label>
+                <input type="number" min="0" max="5" value={feedbackForm.conteudo} onChange={(e) => setFeedbackForm({...feedbackForm, conteudo: Number(e.target.value)})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
               </div>
-              <textarea placeholder="Comentários" value={feedbackForm.comentarios} onChange={(e) => setFeedbackForm({...feedbackForm, comentarios: e.target.value})} className="w-full px-4 py-2 border rounded-lg" />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600">Enviar</button>
-                <button type="button" onClick={() => setActiveFeedback(null)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+              <div>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Comentários</label>
+                <textarea value={feedbackForm.comentarios} onChange={(e) => setFeedbackForm({...feedbackForm, comentarios: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" rows={4}></textarea>
+              </div>
+              <div className="flex gap-3">
+                <button type="submit" className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-black uppercase text-sm transition-all">Enviar</button>
+                <button type="button" onClick={() => setActiveFeedback(null)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 py-3 rounded-lg font-black uppercase text-sm transition-all">Cancelar</button>
               </div>
             </form>
           </div>
@@ -523,12 +576,12 @@ export default function TutoriaManagerIntegrated() {
       {/* Modal - Confirmação de Deleção */}
       {deleteConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
-            <h2 className="text-2xl font-black text-slate-800 mb-4">Confirmar Deleção</h2>
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-black text-slate-800 mb-6">Confirmar Deleção</h2>
             <p className="text-slate-600 mb-6">Tem certeza que deseja deletar esta tutoria?</p>
-            <div className="flex gap-2">
-              <button onClick={() => handleDeleteTutoria(deleteConfirmation)} className="flex-1 bg-red-500 text-white py-2 rounded-lg font-bold hover:bg-red-600">Deletar</button>
-              <button onClick={() => setDeleteConfirmation(null)} className="flex-1 bg-slate-300 text-slate-700 py-2 rounded-lg font-bold hover:bg-slate-400">Cancelar</button>
+            <div className="flex gap-3">
+              <button onClick={() => handleDeleteTutoria(deleteConfirmation)} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-black uppercase text-sm transition-all">Deletar</button>
+              <button onClick={() => setDeleteConfirmation(null)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 py-3 rounded-lg font-black uppercase text-sm transition-all">Cancelar</button>
             </div>
           </div>
         </div>
