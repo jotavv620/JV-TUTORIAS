@@ -186,10 +186,10 @@ export async function getAllProfessores() {
   return await db.select().from(professores);
 }
 
-export async function createProfessor(userId: number, nome: string) {
+export async function createProfessor(userId: number, nome: string, email?: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.insert(professores).values({ userId, nome });
+  return await db.insert(professores).values({ userId, nome, email: email || null });
 }
 
 export async function deleteProfessor(professorId: number) {

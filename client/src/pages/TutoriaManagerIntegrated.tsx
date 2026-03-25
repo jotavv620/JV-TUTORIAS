@@ -79,6 +79,8 @@ export default function TutoriaManagerIntegrated() {
     trpc.config.getProfessores.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
   const { data: instituicoesData = [], refetch: refetchInstituicoes } = 
     trpc.config.getInstituicoes.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
+  const { data: bolsistasData = [], refetch: refetchBolsistas } = 
+    trpc.bolsista.list.useQuery(undefined, { enabled: isAuthenticated, refetchInterval: 3000 } as any);
   
   // Mutations for configuration
   const createDisciplinaMutation = trpc.config.createDisciplina.useMutation({
@@ -98,6 +100,12 @@ export default function TutoriaManagerIntegrated() {
   });
   const deleteInstituicaoMutation = trpc.config.deleteInstituicao.useMutation({
     onSuccess: () => utils.config.getInstituicoes.invalidate(),
+  });
+  const createBolsistaMutation = trpc.bolsista.create.useMutation({
+    onSuccess: () => utils.bolsista.list.invalidate(),
+  });
+  const deleteBolsistaMutation = trpc.bolsista.delete.useMutation({
+    onSuccess: () => utils.bolsista.list.invalidate(),
   });
 
   // Keep full objects for proper key handling
@@ -131,7 +139,10 @@ export default function TutoriaManagerIntegrated() {
 
   const [inputDisciplina, setInputDisciplina] = useState('');
   const [inputProfessor, setInputProfessor] = useState('');
+  const [inputProfessorEmail, setInputProfessorEmail] = useState('');
   const [inputInstituicao, setInputInstituicao] = useState('');
+  const [inputBolsista, setInputBolsista] = useState('');
+  const [inputBolsistaEmail, setInputBolsistaEmail] = useState('');
 
   if (authLoading) {
     return (
@@ -235,7 +246,7 @@ export default function TutoriaManagerIntegrated() {
     }
   };
 
-  const handleAddItem = async (type: string, value: string) => {
+  const handleAddItem = async (type: string, value: string, email?: string) => {
     if (!value.trim()) return;
     try {
       if (type === 'disc') {
@@ -244,8 +255,9 @@ export default function TutoriaManagerIntegrated() {
         refetchDisciplinas();
         toast.success('Disciplina adicionada!');
       } else if (type === 'prof') {
-        await createProfessorMutation.mutateAsync({ nome: value });
+        await createProfessorMutation.mutateAsync({ nome: value, email: email || undefined });
         setInputProfessor('');
+        setInputProfessorEmail('');
         refetchProfessores();
         toast.success('Professor adicionado!');
       } else if (type === 'inst') {
@@ -253,6 +265,16 @@ export default function TutoriaManagerIntegrated() {
         setInputInstituicao('');
         refetchInstituicoes();
         toast.success('Filial adicionada!');
+      } else if (type === 'bol') {
+        if (!email || !email.trim()) {
+          toast.error('Email do bolsista é obrigatório');
+          return;
+        }
+        await createBolsistaMutation.mutateAsync({ nome: value, email });
+        setInputBolsista('');
+        setInputBolsistaEmail('');
+        refetchBolsistas();
+        toast.success('Bolsista adicionado!');
       }
     } catch (error) {
       toast.error('Erro ao adicionar item');
@@ -282,6 +304,13 @@ export default function TutoriaManagerIntegrated() {
           await deleteInstituicaoMutation.mutateAsync({ instituicaoId: item.id });
           refetchInstituicoes();
           toast.success('Filial removida!');
+        }
+      } else if (type === 'bol') {
+        const item = bolsistasData.find((b: any) => b.nome === value);
+        if (item?.id) {
+          await deleteBolsistaMutation.mutateAsync({ bolsistaId: item.id });
+          refetchBolsistas();
+          toast.success('Bolsista removido!');
         }
       }
     } catch (error) {
@@ -462,12 +491,14 @@ export default function TutoriaManagerIntegrated() {
                   value={inputProfessor} 
                   onChange={(e) => setInputProfessor(e.target.value)} 
                 />
-                <button onClick={() => handleAddItem('prof', inputProfessor)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
+                <button onClick={() => handleAddItem('prof', inputProfessor, inputProfessorEmail)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
               </div>
               <input 
                 type="email" 
                 placeholder="Email do professor..." 
                 className="w-full px-4 py-2 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200 mb-6" 
+                value={inputProfessorEmail}
+                onChange={(e) => setInputProfessorEmail(e.target.value)}
               />
               <div className="space-y-2">
                 {professores.map((p: any) => (
@@ -509,22 +540,28 @@ export default function TutoriaManagerIntegrated() {
                   type="text" 
                   placeholder="Nome do bolsista..." 
                   className="px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                  value={inputBolsista}
+                  onChange={(e) => setInputBolsista(e.target.value)}
                 />
                 <input 
                   type="email" 
                   placeholder="Email..." 
                   className="px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                  value={inputBolsistaEmail}
+                  onChange={(e) => setInputBolsistaEmail(e.target.value)}
                 />
               </div>
-              <button className="w-full p-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} />Adicionar Bolsista</button>
+              <button onClick={() => handleAddItem('bol', inputBolsista, inputBolsistaEmail)} className="w-full p-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} />Adicionar Bolsista</button>
               <div className="space-y-2 mt-4">
-                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
-                  <div>
-                    <p>João Silva</p>
-                    <p className="text-slate-400">joao@email.com</p>
+                {bolsistasData.map((b: any) => (
+                  <div key={b.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                    <div>
+                      <p>{b.nome}</p>
+                      <p className="text-slate-400">{b.email}</p>
+                    </div>
+                    <button onClick={() => handleRemoveItem('bol', b.nome)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
                   </div>
-                  <button className="text-slate-300 hover:text-red-500"><X size={14} /></button>
-                </div>
+                ))}
               </div>
             </div>
           </div>

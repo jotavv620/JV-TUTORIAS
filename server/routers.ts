@@ -150,9 +150,9 @@ export const appRouter = router({
     }),
     
     createProfessor: protectedProcedure
-      .input(z.object({ nome: z.string() }))
+      .input(z.object({ nome: z.string(), email: z.string().email().optional() }))
       .mutation(async ({ ctx, input }) => {
-        const result = await db.createProfessor(ctx.user.id, input.nome);
+        const result = await db.createProfessor(ctx.user.id, input.nome, input.email);
         broadcastConfigUpdate({ type: 'professor', action: 'created', data: result });
         return result;
       }),
