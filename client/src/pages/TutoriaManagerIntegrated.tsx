@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { useWebSocket } from '@/_core/hooks/useWebSocket';
 import { getLoginUrl } from '@/const';
 import { trpc } from '@/lib/trpc';
 import { 
@@ -48,6 +49,7 @@ const StatCard = ({ label, val, icon: Icon, colorClass }: { label: string; val: 
 
 export default function TutoriaManagerIntegrated() {
   const { isAuthenticated, user, logout, loading: authLoading } = useAuth();
+  useWebSocket(); // Initialize WebSocket for real-time updates
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // tRPC queries - Tutorias (with real-time polling)

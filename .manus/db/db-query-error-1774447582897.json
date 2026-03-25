@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE `users` MODIFY COLUMN `role` enum('admin','professor','bolsista') NOT NULL DEFAULT 'bolsista';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute ALTER TABLE `users` MODIFY COLUMN `role` enum('admin','professor','bolsista') NOT NULL DEFAULT 'bolsista';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1265 (01000) at line 1: Data truncated for column 'role', value is 'user'"
+  ]
+}

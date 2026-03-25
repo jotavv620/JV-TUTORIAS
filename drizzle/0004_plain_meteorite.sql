@@ -1,0 +1,2 @@
+ALTER TABLE `users` MODIFY COLUMN `role` enum('user','admin') NOT NULL DEFAULT 'user';--> statement-breakpoint
+ALTER TABLE `users` ADD `userType` enum('admin','professor','bolsista') DEFAULT 'bolsista' NOT NULL;
