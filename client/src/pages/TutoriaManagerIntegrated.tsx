@@ -433,13 +433,31 @@ export default function TutoriaManagerIntegrated() {
       {/* Modal - Nova Tutoria */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-black text-slate-800 mb-6">Nova Tutoria</h2>
             <form onSubmit={handleAddTutoria} className="space-y-4">
-              <input type="text" placeholder="Disciplina" value={newTutoria.disciplina} onChange={(e) => setNewTutoria({...newTutoria, disciplina: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
-              <input type="text" placeholder="Professor" value={newTutoria.professor} onChange={(e) => setNewTutoria({...newTutoria, professor: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
-              <input type="text" placeholder="Instituição" value={newTutoria.instituicao} onChange={(e) => setNewTutoria({...newTutoria, instituicao: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
-              <input type="text" placeholder="Tutor" value={newTutoria.tutor} onChange={(e) => setNewTutoria({...newTutoria, tutor: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
+              <div>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Disciplina *</label>
+                <select value={newTutoria.disciplina} onChange={(e) => setNewTutoria({...newTutoria, disciplina: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                  <option value="">-- Selecione uma disciplina --</option>
+                  {disciplinas.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Professor *</label>
+                <select value={newTutoria.professor} onChange={(e) => setNewTutoria({...newTutoria, professor: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                  <option value="">-- Selecione um professor --</option>
+                  {professores.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2 text-slate-700">Instituição *</label>
+                <select value={newTutoria.instituicao} onChange={(e) => setNewTutoria({...newTutoria, instituicao: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                  <option value="">-- Selecione uma instituição --</option>
+                  {instituicoes.map(i => <option key={i} value={i}>{i}</option>)}
+                </select>
+              </div>
+              <input type="text" placeholder="Bolsista/Tutor" value={newTutoria.tutor} onChange={(e) => setNewTutoria({...newTutoria, tutor: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required />
               <input type="date" value={newTutoria.data} onChange={(e) => setNewTutoria({...newTutoria, data: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
               <input type="time" value={newTutoria.horario} onChange={(e) => setNewTutoria({...newTutoria, horario: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
               <input type="time" value={newTutoria.horarioTermino} onChange={(e) => setNewTutoria({...newTutoria, horarioTermino: e.target.value})} className="w-full px-4 py-2 border rounded-lg" required />
