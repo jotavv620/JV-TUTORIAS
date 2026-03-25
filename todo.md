@@ -52,3 +52,26 @@
 - [x] Criar testes para função sendEmail()
 - [x] Testar envio de emails ao criar tutoria
 - [x] Validar conteúdo dos emails (13 novos testes)
+
+
+## EMAIL OBRIGATÓRIO PARA PROFESSORES - CONCLUÍDO
+
+### FASE 1: Atualizar UI
+- [x] Tornar campo de email obrigatório na UI
+- [x] Validar email antes de enviar
+- [x] Mostrar mensagem de erro se email vazio
+
+### FASE 2: Atualizar Backend
+- [x] Alterar schema para email NOT NULL em professores
+- [x] Atualizar mutation para validar email obrigatório
+- [x] Atualizar função createProfessor para exigir email
+
+### FASE 3: Exibição
+- [x] Mostrar email do professor na lista
+- [x] Permitir editar email do professor
+- [x] Validar formato de email
+
+### FASE 4: Testes
+- [x] Testar validação de email obrigatório
+- [x] Testar exibição de email
+- [x] Executar todos os testes (53 testes passando)

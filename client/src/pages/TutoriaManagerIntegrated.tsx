@@ -255,7 +255,11 @@ export default function TutoriaManagerIntegrated() {
         refetchDisciplinas();
         toast.success('Disciplina adicionada!');
       } else if (type === 'prof') {
-        await createProfessorMutation.mutateAsync({ nome: value, email: email || undefined });
+        if (!email || !email.trim()) {
+          toast.error('Email do professor é obrigatório');
+          return;
+        }
+        await createProfessorMutation.mutateAsync({ nome: value, email });
         setInputProfessor('');
         setInputProfessorEmail('');
         refetchProfessores();
@@ -483,27 +487,30 @@ export default function TutoriaManagerIntegrated() {
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
               <h3 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-orange-500"><User size={16} /> Professores</h3>
-              <div className="flex gap-2 mb-2">
+              <div className="grid grid-cols-1 gap-4 mb-6">
                 <input 
                   type="text" 
-                  placeholder="Nome..." 
-                  className="flex-1 px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                  placeholder="Nome do professor..." 
+                  className="px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
                   value={inputProfessor} 
                   onChange={(e) => setInputProfessor(e.target.value)} 
                 />
-                <button onClick={() => handleAddItem('prof', inputProfessor, inputProfessorEmail)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
+                <input 
+                  type="email" 
+                  placeholder="Email..." 
+                  className="px-4 py-3 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200" 
+                  value={inputProfessorEmail}
+                  onChange={(e) => setInputProfessorEmail(e.target.value)}
+                />
               </div>
-              <input 
-                type="email" 
-                placeholder="Email do professor..." 
-                className="w-full px-4 py-2 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200 mb-6" 
-                value={inputProfessorEmail}
-                onChange={(e) => setInputProfessorEmail(e.target.value)}
-              />
-              <div className="space-y-2">
+              <button onClick={() => handleAddItem('prof', inputProfessor, inputProfessorEmail)} className="w-full p-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} />Adicionar Professor</button>
+              <div className="space-y-2 mt-4">
                 {professores.map((p: any) => (
                   <div key={p.id || p.nome} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
-                    <span>{p.nome || p}</span>
+                    <div>
+                      <p>{p.nome || p}</p>
+                      <p className="text-slate-400">{p.email || 'Sem email'}</p>
+                    </div>
                     <button onClick={() => handleRemoveItem('prof', p.nome || p)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
                   </div>
                 ))}
