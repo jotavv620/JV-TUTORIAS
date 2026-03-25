@@ -20,8 +20,8 @@ export const appRouter = router({
 
   // Tutorias router
   tutorias: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getTutoriasByUserId(ctx.user.id);
+    list: protectedProcedure.query(async () => {
+      return await db.getAllTutorias();
     }),
     
     create: protectedProcedure

@@ -96,6 +96,12 @@ export async function getTutoriasByUserId(userId: number) {
   return await db.select().from(tutorias).where(eq(tutorias.userId, userId));
 }
 
+export async function getAllTutorias() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(tutorias);
+}
+
 export async function createTutoria(userId: number, data: Omit<Tutoria, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

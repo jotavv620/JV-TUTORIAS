@@ -5,13 +5,13 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import TutoriaManagerIntegrated from "./pages/TutoriaManagerIntegrated";
-import LandingPage from "./pages/LandingPage";
-import RegisterPage from "./pages/RegisterPage";
 import PublicDashboard from "./pages/PublicDashboard";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
+import LoginPage from "./pages/LoginPage";
+import SimpleRegisterPage from "./pages/SimpleRegisterPage";
 
 function Router() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useCustomAuth();
 
   if (loading) {
     return (
@@ -26,9 +26,10 @@ function Router() {
 
   return (
     <Switch>
-      <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : LandingPage} />
+      <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : LoginPage} />
       <Route path={"/app"} component={TutoriaManagerIntegrated} />
-      <Route path={"/register"} component={RegisterPage} />
+      <Route path={"/login"} component={LoginPage} />
+      <Route path={"/register"} component={SimpleRegisterPage} />
       <Route path={"/dashboard"} component={PublicDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
