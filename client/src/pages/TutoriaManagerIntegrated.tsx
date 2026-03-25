@@ -100,10 +100,15 @@ export default function TutoriaManagerIntegrated() {
     onSuccess: () => utils.config.getInstituicoes.invalidate(),
   });
 
-  // Convert data to arrays of names
-  const disciplinas = disciplinasData.map((d: any) => d.nome || d);
-  const professores = professoresData.map((p: any) => p.nome || p);
-  const instituicoes = instituicoesData.map((i: any) => i.nome || i);
+  // Keep full objects for proper key handling
+  const disciplinas = disciplinasData;
+  const professores = professoresData;
+  const instituicoes = instituicoesData;
+  
+  // Extract just names for dropdowns
+  const disciplinasNames = disciplinas.map((d: any) => d.nome || d);
+  const professoresNames = professores.map((p: any) => p.nome || p);
+  const instituicoesNames = instituicoes.map((i: any) => i.nome || i);
 
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -438,10 +443,10 @@ export default function TutoriaManagerIntegrated() {
                 <button onClick={() => handleAddItem('disc', inputDisciplina)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
               </div>
               <div className="space-y-2">
-                {disciplinas.map((d: string) => (
-                  <div key={d} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
-                    <span>{d}</span>
-                    <button onClick={() => handleRemoveItem('disc', d)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                {disciplinas.map((d: any) => (
+                  <div key={d.id || d.nome} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                    <span>{d.nome || d}</span>
+                    <button onClick={() => handleRemoveItem('disc', d.nome || d)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -465,10 +470,10 @@ export default function TutoriaManagerIntegrated() {
                 className="w-full px-4 py-2 bg-slate-50 rounded-xl text-[10px] font-bold outline-none border-0 focus:ring-2 focus:ring-orange-200 mb-6" 
               />
               <div className="space-y-2">
-                {professores.map((p: string) => (
-                  <div key={p} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
-                    <span>{p}</span>
-                    <button onClick={() => handleRemoveItem('prof', p)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                {professores.map((p: any) => (
+                  <div key={p.id || p.nome} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                    <span>{p.nome || p}</span>
+                    <button onClick={() => handleRemoveItem('prof', p.nome || p)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -487,10 +492,10 @@ export default function TutoriaManagerIntegrated() {
                 <button onClick={() => handleAddItem('inst', inputInstituicao)} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"><Plus size={16} /></button>
               </div>
               <div className="space-y-2">
-                {instituicoes.map((i: string) => (
-                  <div key={i} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
-                    <span>{i}</span>
-                    <button onClick={() => handleRemoveItem('inst', i)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
+                {instituicoes.map((i: any) => (
+                  <div key={i.id || i.nome} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg text-xs font-bold text-slate-600">
+                    <span>{i.nome || i}</span>
+                    <button onClick={() => handleRemoveItem('inst', i.nome || i)} className="text-slate-300 hover:text-red-500"><X size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -536,21 +541,21 @@ export default function TutoriaManagerIntegrated() {
                 <label className="block text-sm font-bold mb-2 text-slate-700">Disciplina *</label>
                 <select value={newTutoria.disciplina} onChange={(e) => setNewTutoria({...newTutoria, disciplina: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
                   <option value="">-- Selecione uma disciplina --</option>
-                  {disciplinas.map(d => <option key={d} value={d}>{d}</option>)}
+                  {disciplinasNames.map((d: string) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2 text-slate-700">Professor *</label>
                 <select value={newTutoria.professor} onChange={(e) => setNewTutoria({...newTutoria, professor: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
                   <option value="">-- Selecione um professor --</option>
-                  {professores.map(p => <option key={p} value={p}>{p}</option>)}
+                  {professoresNames.map((p: string) => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2 text-slate-700">Filial *</label>
                 <select value={newTutoria.instituicao} onChange={(e) => setNewTutoria({...newTutoria, instituicao: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
                   <option value="">-- Selecione uma filial --</option>
-                  {instituicoes.map(i => <option key={i} value={i}>{i}</option>)}
+                  {instituicoesNames.map((i: string) => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
               <div>
