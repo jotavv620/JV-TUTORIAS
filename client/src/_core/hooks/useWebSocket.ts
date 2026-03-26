@@ -33,9 +33,10 @@ export function useWebSocket() {
     socket.on('config-updated', (data: any) => {
       console.log('[WebSocket] Config update received:', data);
       // Invalidate config queries
-      utils.config.getDisciplinas.invalidate();
-      utils.config.getProfessores.invalidate();
-      utils.config.getInstituicoes.invalidate();
+      utils.disciplinas.list.invalidate();
+      utils.professores.list.invalidate();
+      utils.instituicoes.list.invalidate();
+      utils.bolsista.list.invalidate();
     });
 
     // Listen for feedback updates

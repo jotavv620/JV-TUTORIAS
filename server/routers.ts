@@ -1,5 +1,5 @@
-import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { COOKIE_NAME } from "../shared/const";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import {
   sendBolsistaTutoriaEmail,
   TutoriaEmailData,
 } from "./_core/emailService";
+import { parseCSV, ParseError } from "./_core/csvParser";
 
 export const appRouter = router({
   system: systemRouter,
@@ -84,7 +85,7 @@ export const appRouter = router({
         return result;
       }),
     
-    updateStatus: protectedProcedure
+    update: protectedProcedure
       .input(z.object({
         tutoriaId: z.number(),
         status: z.enum(['scheduled', 'in_progress', 'completed']),
@@ -96,10 +97,12 @@ export const appRouter = router({
       }),
     
     delete: protectedProcedure
-      .input(z.object({ tutoriaId: z.number() }))
+      .input(z.object({
+        tutoriaId: z.number(),
+      }))
       .mutation(async ({ input }) => {
         const result = await db.deleteTutoria(input.tutoriaId);
-        broadcastTutoriaUpdate('deleted', { id: input.tutoriaId });
+        broadcastTutoriaUpdate('deleted', result);
         return result;
       }),
   }),
@@ -109,9 +112,9 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         tutoriaId: z.number(),
-        pontualidade: z.number(),
-        audio: z.number(),
-        conteudo: z.number(),
+        pontualidade: z.number().min(1).max(5),
+        audio: z.number().min(1).max(5),
+        conteudo: z.number().min(1).max(5),
         comentarios: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -126,7 +129,9 @@ export const appRouter = router({
       }),
     
     getByTutoriaId: protectedProcedure
-      .input(z.object({ tutoriaId: z.number() }))
+      .input(z.object({
+        tutoriaId: z.number(),
+      }))
       .query(async ({ input }) => {
         return await db.getFeedbackByTutoriaId(input.tutoriaId);
       }),
@@ -150,71 +155,89 @@ export const appRouter = router({
       }),
     
     getByTutoriaId: protectedProcedure
-      .input(z.object({ tutoriaId: z.number() }))
+      .input(z.object({
+        tutoriaId: z.number(),
+      }))
       .query(async ({ input }) => {
         return await db.getCheckinByTutoriaId(input.tutoriaId);
       }),
   }),
 
-  // Configuracoes router
-  config: router({
-    // Disciplinas
-    getDisciplinas: protectedProcedure.query(async () => {
+  // Disciplinas router
+  disciplinas: router({
+    list: protectedProcedure.query(async () => {
       return await db.getAllDisciplinas();
     }),
     
-    createDisciplina: protectedProcedure
-      .input(z.object({ nome: z.string() }))
+    create: protectedProcedure
+      .input(z.object({
+        nome: z.string(),
+      }))
       .mutation(async ({ ctx, input }) => {
         const result = await db.createDisciplina(ctx.user.id, input.nome);
         broadcastConfigUpdate({ type: 'disciplina', action: 'created', data: result });
         return result;
       }),
     
-    deleteDisciplina: protectedProcedure
-      .input(z.object({ disciplinaId: z.number() }))
+    delete: protectedProcedure
+      .input(z.object({
+        disciplinaId: z.number(),
+      }))
       .mutation(async ({ input }) => {
         const result = await db.deleteDisciplina(input.disciplinaId);
         broadcastConfigUpdate({ type: 'disciplina', action: 'deleted', id: input.disciplinaId });
         return result;
       }),
+  }),
 
-    // Professores
-    getProfessores: protectedProcedure.query(async () => {
+  // Professores router
+  professores: router({
+    list: protectedProcedure.query(async () => {
       return await db.getAllProfessores();
     }),
     
-    createProfessor: protectedProcedure
-      .input(z.object({ nome: z.string(), email: z.string().email().optional() }))
+    create: protectedProcedure
+      .input(z.object({
+        nome: z.string(),
+        email: z.string().email(),
+      }))
       .mutation(async ({ ctx, input }) => {
         const result = await db.createProfessor(ctx.user.id, input.nome, input.email);
         broadcastConfigUpdate({ type: 'professor', action: 'created', data: result });
         return result;
       }),
     
-    deleteProfessor: protectedProcedure
-      .input(z.object({ professorId: z.number() }))
+    delete: protectedProcedure
+      .input(z.object({
+        professorId: z.number(),
+      }))
       .mutation(async ({ input }) => {
         const result = await db.deleteProfessor(input.professorId);
         broadcastConfigUpdate({ type: 'professor', action: 'deleted', id: input.professorId });
         return result;
       }),
+  }),
 
-    // Instituicoes
-    getInstituicoes: protectedProcedure.query(async () => {
+  // Instituicoes router
+  instituicoes: router({
+    list: protectedProcedure.query(async () => {
       return await db.getAllInstituicoes();
     }),
     
-    createInstituicao: protectedProcedure
-      .input(z.object({ nome: z.string() }))
+    create: protectedProcedure
+      .input(z.object({
+        nome: z.string(),
+      }))
       .mutation(async ({ ctx, input }) => {
         const result = await db.createInstituicao(ctx.user.id, input.nome);
         broadcastConfigUpdate({ type: 'instituicao', action: 'created', data: result });
         return result;
       }),
     
-    deleteInstituicao: protectedProcedure
-      .input(z.object({ instituicaoId: z.number() }))
+    delete: protectedProcedure
+      .input(z.object({
+        instituicaoId: z.number(),
+      }))
       .mutation(async ({ input }) => {
         const result = await db.deleteInstituicao(input.instituicaoId);
         broadcastConfigUpdate({ type: 'instituicao', action: 'deleted', id: input.instituicaoId });
@@ -222,69 +245,7 @@ export const appRouter = router({
       }),
   }),
 
-  // Relatorios router
-  relatorios: router({
-    getRanking: protectedProcedure.query(async ({ ctx }) => {
-      const tutorias = await db.getTutoriasByUserId(ctx.user.id);
-      const profMap: Record<string, { count: number; total: number }> = {};
-      
-      for (const tutoria of tutorias) {
-        if (!profMap[tutoria.professor]) {
-          profMap[tutoria.professor] = { count: 0, total: 0 };
-        }
-        profMap[tutoria.professor].count++;
-        
-        const feedback = await db.getFeedbackByTutoriaId(tutoria.id);
-        if (feedback?.conteudo) {
-          profMap[tutoria.professor].total += feedback.conteudo;
-        }
-      }
-
-      return Object.entries(profMap).map(([name, data]) => {
-        const avg = data.count > 0 ? data.total / data.count : 0;
-        return {
-          name,
-          count: data.count,
-          avg: avg.toFixed(1),
-          status: avg >= 4.5 ? 'Excelente' : avg >= 3.5 ? 'Bom' : 'Regular'
-        };
-      }).sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
-    }),
-
-    exportPDF: protectedProcedure.query(async ({ ctx }) => {
-      const tutorias = await db.getTutoriasByUserId(ctx.user.id);
-      const profMap: Record<string, { count: number; total: number }> = {};
-      
-      for (const tutoria of tutorias) {
-        if (!profMap[tutoria.professor]) {
-          profMap[tutoria.professor] = { count: 0, total: 0 };
-        }
-        profMap[tutoria.professor].count++;
-        
-        const feedback = await db.getFeedbackByTutoriaId(tutoria.id);
-        if (feedback?.conteudo) {
-          profMap[tutoria.professor].total += feedback.conteudo;
-        }
-      }
-
-      const ranking = Object.entries(profMap).map(([name, data]) => {
-        const avg = data.count > 0 ? data.total / data.count : 0;
-        return {
-          name,
-          count: data.count,
-          avg: avg.toFixed(1),
-          status: avg >= 4.5 ? 'Excelente' : avg >= 3.5 ? 'Bom' : 'Regular'
-        };
-      }).sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
-
-       return {
-        data: ranking,
-        timestamp: new Date().toISOString(),
-      };
-    }),
-  }),
-
-  // Bolsista router
+  // Bolsistas router
   bolsista: router({
     list: protectedProcedure.query(async () => {
       return await db.getAllBolsistas();
@@ -323,6 +284,125 @@ export const appRouter = router({
         const result = await db.updateProfessorEmail(input.professorId, input.email);
         broadcastConfigUpdate({ type: 'professor', action: 'updated', data: result });
         return result;
+      }),
+  }),
+
+  // Bulk import router
+  import: router({
+    parseProfessoresCSV: protectedProcedure
+      .input(z.object({
+        csvContent: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const parseResult = parseCSV(input.csvContent);
+        return parseResult;
+      }),
+
+    importProfessores: protectedProcedure
+      .input(z.object({
+        professores: z.array(z.object({
+          nome: z.string(),
+          email: z.string().email(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const results = {
+          success: 0,
+          failed: 0,
+          errors: [] as ParseError[],
+          created: [] as any[],
+        };
+
+        for (let i = 0; i < input.professores.length; i++) {
+          try {
+            const prof = input.professores[i];
+
+            // Check if professor already exists
+            const existing = await db.getProfessorByName(prof.nome);
+            if (existing) {
+              results.failed++;
+              results.errors.push({
+                row: i + 2,
+                field: 'nome',
+                message: `Professor "${prof.nome}" já existe`,
+              });
+              continue;
+            }
+
+            // Create professor
+            const created = await db.createProfessor(ctx.user.id, prof.nome, prof.email);
+            results.success++;
+            results.created.push(created);
+            broadcastConfigUpdate({ type: 'professor', action: 'created', data: created });
+          } catch (error) {
+            results.failed++;
+            results.errors.push({
+              row: i + 2,
+              field: 'database',
+              message: `Erro ao criar professor: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+            });
+          }
+        }
+
+        return results;
+      }),
+
+    parseBolsistasCSV: protectedProcedure
+      .input(z.object({
+        csvContent: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const parseResult = parseCSV(input.csvContent);
+        return parseResult;
+      }),
+
+    importBolsistas: protectedProcedure
+      .input(z.object({
+        bolsistas: z.array(z.object({
+          nome: z.string(),
+          email: z.string().email(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const results = {
+          success: 0,
+          failed: 0,
+          errors: [] as ParseError[],
+          created: [] as any[],
+        };
+
+        for (let i = 0; i < input.bolsistas.length; i++) {
+          try {
+            const bolsista = input.bolsistas[i];
+
+            // Check if bolsista already exists
+            const existing = await db.getBolsistaByName(bolsista.nome);
+            if (existing) {
+              results.failed++;
+              results.errors.push({
+                row: i + 2,
+                field: 'nome',
+                message: `Bolsista "${bolsista.nome}" já existe`,
+              });
+              continue;
+            }
+
+            // Create bolsista
+            const created = await db.createBolsista(ctx.user.id, bolsista.nome, bolsista.email);
+            results.success++;
+            results.created.push(created);
+            broadcastConfigUpdate({ type: 'bolsista', action: 'created', data: created });
+          } catch (error) {
+            results.failed++;
+            results.errors.push({
+              row: i + 2,
+              field: 'database',
+              message: `Erro ao criar bolsista: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+            });
+          }
+        }
+
+        return results;
       }),
   }),
 });

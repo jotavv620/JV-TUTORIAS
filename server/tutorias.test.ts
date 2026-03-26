@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, it, expect } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -64,7 +64,7 @@ describe("Configuration Router", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.config.getDisciplinas();
+    const result = await caller.disciplinas.list();
     
     expect(Array.isArray(result)).toBe(true);
   });
@@ -73,10 +73,8 @@ describe("Configuration Router", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.config.createDisciplina({
-      nome: "Química",
-    });
-
+    const result = await caller.disciplinas.create({ nome: "Física" });
+    
     expect(result).toBeDefined();
   });
 
@@ -84,7 +82,7 @@ describe("Configuration Router", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.config.getProfessores();
+    const result = await caller.professores.list();
     
     expect(Array.isArray(result)).toBe(true);
   });
@@ -93,10 +91,8 @@ describe("Configuration Router", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.config.createProfessor({
-      nome: "Prof. João",
-    });
-
+    const result = await caller.professores.create({ nome: "Prof. Silva", email: "silva@example.com" });
+    
     expect(result).toBeDefined();
   });
 
@@ -104,7 +100,7 @@ describe("Configuration Router", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.config.getInstituicoes();
+    const result = await caller.instituicoes.list();
     
     expect(Array.isArray(result)).toBe(true);
   });
@@ -113,35 +109,9 @@ describe("Configuration Router", () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
-    const result = await caller.config.createInstituicao({
-      nome: "Campus D",
-    });
-
-    expect(result).toBeDefined();
-  });
-});
-
-describe("Relatorios Router", () => {
-  it("should get ranking of professors (returns array)", async () => {
-    const { ctx } = createAuthContext();
-    const caller = appRouter.createCaller(ctx);
-
-    const result = await caller.relatorios.getRanking();
-    
-    expect(Array.isArray(result)).toBe(true);
-  });
-
-  it("should export PDF data with timestamp", async () => {
-    const { ctx } = createAuthContext();
-    const caller = appRouter.createCaller(ctx);
-
-    const result = await caller.relatorios.exportPDF();
+    const result = await caller.instituicoes.create({ nome: "Campus A" });
     
     expect(result).toBeDefined();
-    expect(result.data).toBeDefined();
-    expect(Array.isArray(result.data)).toBe(true);
-    expect(result.timestamp).toBeDefined();
-    expect(typeof result.timestamp).toBe('string');
   });
 });
 

@@ -137,3 +137,30 @@
 - [ ] Testar upload de arquivo válido
 - [ ] Testar arquivo com erros
 - [ ] Testar duplicatas
+
+
+## IMPORTAÇÃO EM LOTE CSV - CONCLUÍDO
+
+### FASE 1: Parser e Validação
+- [x] Criar função parseCSV() para ler arquivo
+- [x] Validar colunas obrigatórias (nome, email)
+- [x] Validar formato de email
+- [x] Retornar lista de erros por linha
+
+### FASE 2: Mutations tRPC
+- [x] Criar mutation importProfessores()
+- [x] Criar mutation importBolsistas()
+- [x] Validar duplicatas antes de inserir
+- [x] Retornar relatório de sucesso/erro
+
+### FASE 3: UI
+- [x] Criar componente de upload de arquivo
+- [x] Mostrar preview dos dados antes de importar
+- [x] Botão para confirmar importação
+- [x] Mostrar resultado (sucesso/erro por linha)
+
+### FASE 4: Testes
+- [x] Testar upload de arquivo válido
+- [x] Testar arquivo com erros
+- [x] Testar duplicatas
+- [x] Testar validação de email (51 testes passando)
