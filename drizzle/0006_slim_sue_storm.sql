@@ -1,0 +1,1 @@
+ALTER TABLE `tutorias` ADD `reminder_sent` boolean DEFAULT false NOT NULL;

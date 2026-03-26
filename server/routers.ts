@@ -49,7 +49,8 @@ export const appRouter = router({
         const result = await db.createTutoria(ctx.user.id, {
           ...input,
           status: 'scheduled',
-        });
+          reminder_sent: false,
+        } as any);
         broadcastTutoriaUpdate('created', result);
         
         // Send emails to professor and bolsista

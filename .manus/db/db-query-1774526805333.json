@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `tutorias` ADD `reminder_sent` boolean DEFAULT false NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute ALTER TABLE `tutorias` ADD `reminder_sent` boolean DEFAULT false NOT NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 223
+}

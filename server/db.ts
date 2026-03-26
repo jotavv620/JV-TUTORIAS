@@ -105,7 +105,7 @@ export async function getAllTutorias() {
 export async function createTutoria(userId: number, data: Omit<Tutoria, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(tutorias).values({ ...data, userId });
+  const result = await db.insert(tutorias).values({ ...data, userId, reminder_sent: false });
   return result;
 }
 

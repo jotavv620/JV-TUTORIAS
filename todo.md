@@ -75,3 +75,65 @@
 - [x] Testar validação de email obrigatório
 - [x] Testar exibição de email
 - [x] Executar todos os testes (53 testes passando)
+
+
+## NOTIFICAÇÕES POR EMAIL - LEMBRETES 30 MIN - CONCLUÍDO
+
+### FASE 1: Criar Sistema de Scheduler
+- [x] Implementar job scheduler para verificar tutorias a 30 min
+- [x] Criar função para enviar lembretes
+- [x] Adicionar timestamp de último lembrete enviado
+
+### FASE 2: Templates de Lembrete
+- [x] Criar template de email para lembrete de tutoria
+- [x] Adicionar link para acessar tutoria diretamente
+- [x] Incluir opção de confirmar presença
+
+### FASE 3: Integração
+- [x] Integrar scheduler no servidor
+- [x] Testar envio de lembretes
+- [x] Validar que não envia duplicatas
+
+## CONTROLE DE ACESSO - ROLES - EM PROGRESSO
+
+### FASE 1: Atualizar Schema
+- [ ] Adicionar campo role na tabela users
+- [ ] Criar migration para adicionar roles existentes
+- [ ] Definir roles: admin, bolsista, professor
+
+### FASE 2: Implementar Proteção em Procedures
+- [ ] Criar adminProcedure para operações admin
+- [ ] Criar bolsistaProcedure para operações de bolsista
+- [ ] Criar professorProcedure para operações de professor
+
+### FASE 3: UI com Controle de Acesso
+- [ ] Mostrar/ocultar seções baseado no role
+- [ ] Restringir acesso a funcionalidades por role
+- [ ] Adicionar indicador de role do usuário
+
+### FASE 4: Testes
+- [ ] Testar acesso negado para roles não autorizados
+- [ ] Testar que admin pode fazer tudo
+- [ ] Testar restrições por role
+
+## IMPORTAÇÃO EM LOTE CSV - EM PROGRESSO
+
+### FASE 1: UI para Upload
+- [ ] Criar componente de upload de arquivo CSV
+- [ ] Validar formato do arquivo
+- [ ] Mostrar preview dos dados antes de importar
+
+### FASE 2: Parser CSV
+- [ ] Implementar parser para CSV
+- [ ] Validar colunas obrigatórias (nome, email)
+- [ ] Tratar erros de formato
+
+### FASE 3: Importação em Batch
+- [ ] Criar mutation para importar múltiplos registros
+- [ ] Validar cada linha antes de inserir
+- [ ] Retornar relatório de sucesso/erro
+
+### FASE 4: Testes
+- [ ] Testar upload de arquivo válido
+- [ ] Testar arquivo com erros
+- [ ] Testar duplicatas
