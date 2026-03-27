@@ -29,8 +29,9 @@ export async function createAccessToken(
     createdByUserId,
     name,
     userType,
-    expiresAt: expiresAt || null,
+    expiresAt: expiresAt || undefined,
     isActive: true,
+    // userId is intentionally omitted - it will be set when token is used
   });
 
   return {
