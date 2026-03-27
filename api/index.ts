@@ -1,34 +1,27 @@
-import express from "express";
-import { createServer } from "http";
-import path from "path";
-import { fileURLToPath } from "url";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+// IMPORTANTE: Adicione ".ts" no final de todos os seus imports de arquivos locais!
+import authRoutes from '../server/_core/routes/auth.routes.ts'; 
+import tutoriaRoutes from '../server/_core/routes/tutoria.routes.ts';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
-async function startServer() {
-  const app = express();
-  const server = createServer(app);
+const app = express();
 
-  // Serve static files from dist/public in production
-  const staticPath =
-    process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "public")
-      : path.resolve(__dirname, "..", "dist", "public");
+app.use(cors());
+app.use(express.json());
 
-  app.use(express.static(staticPath));
-
-  // Handle client-side routing - serve index.html for all routes
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(staticPath, "index.html"));
+// Rota de teste (A nossa "luz de emergência")
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'Motor Ligado', 
+    banco: process.env.DATABASE_URL ? 'URL Detectada' : 'URL Faltando',
+    seguranca: process.env.JWT_SECRET ? 'Chave OK' : 'Sem JWT_SECRET'
   });
+});
 
-  const port = process.env.PORT || 3000;
+app.use('/api/auth', authRoutes);
+app.use('/api/tutorias', tutoriaRoutes);
 
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
-  });
-}
-
-startServer().catch(console.error);
-
+export default app;
