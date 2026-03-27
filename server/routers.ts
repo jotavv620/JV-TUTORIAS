@@ -16,6 +16,9 @@ import {
   TutoriaEmailData,
 } from "./_core/emailService";
 import { parseCSV, ParseError } from "./_core/csvParser";
+import bcrypt from "bcrypt";
+import { eq } from "drizzle-orm";
+import { users } from "../drizzle/schema";
 
 export const appRouter = router({
   system: systemRouter,
@@ -28,6 +31,90 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    register: publicProcedure
+      .input(z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        password: z.string().min(6),
+        userType: z.enum(["admin", "professor", "bolsista"]).default("bolsista"),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error("Banco de dados não disponível");
+          
+          // Check if email already exists
+          const existingUser = await database.select().from(users).where(eq(users.email, input.email)).limit(1);
+          if (existingUser.length > 0) {
+            throw new Error("Email já cadastrado");
+          }
+          
+          // Hash password
+          const hashedPassword = await bcrypt.hash(input.password, 10);
+          
+          // Create user
+          await database.insert(users).values({
+            name: input.name,
+            email: input.email,
+            password: hashedPassword,
+            userType: input.userType,
+            registeredLocally: true,
+            loginMethod: 'local',
+            openId: `local_${input.email}_${Date.now()}`,
+          });
+          
+          // Get the created user
+          const newUserResult = await database.select().from(users).where(eq(users.email, input.email)).limit(1);
+          const newUser = newUserResult[0];
+          
+          return { 
+            success: true,
+            message: "Usuário cadastrado com sucesso",
+            userId: newUser?.id
+          };
+        } catch (error: any) {
+          if (error.message.includes("Email já cadastrado")) {
+            throw new Error("Email já cadastrado");
+          }
+          throw new Error(error.message || "Erro ao cadastrar usuário");
+        }
+      }),
+    login: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error("Banco de dados não disponível");
+          
+          // Get user by email
+          const userResult = await database.select().from(users).where(eq(users.email, input.email)).limit(1);
+          const user = userResult[0];
+          
+          if (!user || !user.password) {
+            throw new Error("Email ou senha inválidos");
+          }
+          
+          // Compare password
+          const passwordMatch = await bcrypt.compare(input.password, user.password);
+          if (!passwordMatch) {
+            throw new Error("Email ou senha inválidos");
+          }
+          
+          return { 
+            success: true,
+            message: "Login realizado com sucesso",
+            userId: user.id,
+            userType: user.userType,
+            name: user.name,
+            email: user.email
+          };
+        } catch (error: any) {
+          throw new Error(error.message || "Erro ao fazer login");
+        }
+      }),
   }),
 
   // Tutorias router

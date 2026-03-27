@@ -451,3 +451,56 @@ export async function getBolsistaByName(nome: string) {
   const result = await db.select().from(bolsistas).where(eq(bolsistas.nome, nome)).limit(1);
   return result[0] || null;
 }
+
+
+// Local authentication functions
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result[0] || null;
+}
+
+export async function createLocalUser(data: {
+  name: string;
+  email: string;
+  password: string;
+  userType: 'admin' | 'professor' | 'bolsista';
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if email already exists
+  const existing = await getUserByEmail(data.email);
+  if (existing) {
+    throw new Error("Email já cadastrado");
+  }
+  
+  return await db.insert(users).values({
+    name: data.name,
+    email: data.email,
+    password: data.password,
+    userType: data.userType,
+    registeredLocally: true,
+    loginMethod: 'local',
+    openId: `local_${data.email}_${Date.now()}`,
+  });
+}
+
+export async function verifyLocalUser(email: string, password: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const user = await getUserByEmail(email);
+  if (!user || !user.password) {
+    return null;
+  }
+  
+  // In production, compare hashed password
+  // For now, just return user if password matches
+  if (user.password === password) {
+    return user;
+  }
+  
+  return null;
+}

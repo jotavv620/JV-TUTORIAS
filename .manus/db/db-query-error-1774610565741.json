@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE users ADD COLUMN password VARCHAR(255) AFTER loginMethod;\nALTER TABLE users ADD COLUMN registeredLocally BOOLEAN DEFAULT false NOT NULL AFTER password;\nALTER TABLE users ADD UNIQUE KEY email_unique (email);\nALTER TABLE users MODIFY openId VARCHAR(64) UNIQUE NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute ALTER TABLE users ADD COLUMN password VARCHAR(255) AFTER loginMethod;\nALTER TABLE users ADD COLUMN registeredLocally BOOLEAN DEFAULT false NOT NULL AFTER password;\nALTER TABLE users ADD UNIQUE KEY email_unique (email);\nALTER TABLE users MODIFY openId VARCHAR(64) UNIQUE NULL;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8200 (HY000) at line 4: can't change column constraint (UNIQUE KEY)"
+  ]
+}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, Mail, Lock, User, Building2, ArrowLeft } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { getLoginUrl } from '@/const';
+import { trpc } from '@/lib/trpc';
 
 export default function RegisterPage() {
   const [, navigate] = useLocation();
@@ -10,51 +10,57 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'tutor',
-    institution: '',
+    userType: 'bolsista' as 'admin' | 'professor' | 'bolsista',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  const registerMutation = trpc.auth.register.useMutation({
+    onSuccess: () => {
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    },
+    onError: (error) => {
+      setError(error.message || 'Erro ao cadastrar');
+    },
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
-    // Validations
     if (!formData.name || !formData.email || !formData.password) {
       setError('Por favor, preencha todos os campos obrigatórios');
-      setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setError('As senhas não correspondem');
-      setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres');
-      setLoading(false);
       return;
     }
 
-    // Simulate registration
-    setTimeout(() => {
-      setSuccess(true);
-      setLoading(false);
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        window.location.href = getLoginUrl();
-      }, 2000);
-    }, 1500);
+    setLoading(true);
+    registerMutation.mutate({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      userType: formData.userType,
+    });
+    setLoading(false);
   };
 
   if (success) {
@@ -131,35 +137,19 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Role */}
+            {/* User Type */}
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Tipo de Usuário *</label>
               <select
-                name="role"
-                value={formData.role}
+                name="userType"
+                value={formData.userType}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
               >
-                <option value="tutor">Tutor</option>
+                <option value="bolsista">Bolsista</option>
                 <option value="professor">Professor</option>
                 <option value="admin">Administrador</option>
               </select>
-            </div>
-
-            {/* Institution */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Instituição</label>
-              <div className="relative">
-                <Building2 size={18} className="absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  name="institution"
-                  value={formData.institution}
-                  onChange={handleChange}
-                  placeholder="Universidade XYZ"
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
-                />
-              </div>
             </div>
 
             {/* Password */}
@@ -208,9 +198,12 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-slate-600 text-sm">
               Já tem uma conta?{' '}
-              <a href={getLoginUrl()} className="text-orange-500 font-bold hover:text-orange-600">
+              <button
+                onClick={() => navigate('/login')}
+                className="text-orange-500 font-bold hover:text-orange-600"
+              >
                 Faça login
-              </a>
+              </button>
             </p>
           </div>
         </div>

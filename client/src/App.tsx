@@ -8,7 +8,8 @@ import TutoriaManagerIntegrated from "./pages/TutoriaManagerIntegrated";
 import PublicDashboard from "./pages/PublicDashboard";
 import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
 import LoginTypeSelector from "./pages/LoginTypeSelector";
-import SimpleRegisterPage from "./pages/SimpleRegisterPage";
+import RegisterPage from "./pages/RegisterPage";
+import LoginLocalPage from "./pages/LoginLocalPage";
 
 function Router() {
   const { isAuthenticated, loading } = useCustomAuth();
@@ -28,8 +29,8 @@ function Router() {
     <Switch>
       <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : LoginTypeSelector} />
       <Route path={"/app"} component={TutoriaManagerIntegrated} />
-      <Route path={"/login"} component={LoginTypeSelector} />
-      <Route path={"/register"} component={SimpleRegisterPage} />
+      <Route path={"/login"} component={LoginLocalPage} />
+      <Route path={"/register"} component={RegisterPage} />
       <Route path={"/dashboard"} component={PublicDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

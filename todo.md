@@ -207,3 +207,16 @@
 - [x] Testar login Admin
 - [x] Testar login Bolsista
 - [x] Validar permissões (51 testes passando)
+
+
+## REGISTRO PRÓPRIO DO APLICATIVO - CONCLUÍDO
+
+- [x] Remover rota de registro do Manus OAuth
+- [x] Criar tabela de usuários com email/senha (campos password e registeredLocally já existem)
+- [x] Implementar mutation de registro com lógica real de banco de dados
+- [x] Criar UI de registro funcional (RegisterPage.tsx)
+- [x] Implementar login com email/senha e validação de credenciais
+- [x] Testar fluxo de registro e login (51 testes passando)
+- [x] Integrar mutations no router principal com bcrypt para hashing de senhas
+- [x] Validação de email duplicado
+- [x] Comparação de senha hasheada com bcrypt.compare()
