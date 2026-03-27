@@ -306,3 +306,12 @@
 - [x] Adicionar seção de features (Organize Tutorias, Sincronize com Google, Gamificação)
 - [x] Implementar loading states e toast notifications
 - [x] Design responsivo com gradiente e componentes modernos
+
+
+## BOTÃO "ENTRAR COM GOOGLE" - CONCLUÍDO
+
+- [x] Criar componente GoogleLoginButton
+- [x] Integrar botão na página de login (Home.tsx)
+- [x] Implementar fluxo de callback do Google
+- [x] Testar login com Google (51 testes passando)
+- [x] Validar criação automática de usuário ao fazer login com Google

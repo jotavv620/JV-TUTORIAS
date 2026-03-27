@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 
 export default function Home() {
   const [, navigate] = useLocation();
@@ -141,6 +142,17 @@ export default function Home() {
                     </>
                   )}
                 </Button>
+
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-slate-500">ou</span>
+                  </div>
+                </div>
+
+                <GoogleLoginButton isLoading={isLoading} />
               </form>
 
               <div className="mt-6 text-center">
@@ -226,6 +238,17 @@ export default function Home() {
                     </>
                   )}
                 </Button>
+
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-slate-500">ou</span>
+                  </div>
+                </div>
+
+                <GoogleLoginButton isLoading={isLoading} />
               </form>
 
               <div className="mt-6 text-center">
