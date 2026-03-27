@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { getDb } from '../db';
 import { users, accessTokens } from '../../drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 /**
  * Generate a secure random access token
@@ -24,18 +24,17 @@ export async function createAccessToken(
 
   const token = generateSecureToken();
 
-  const result = await db.insert(accessTokens).values({
-    token,
-    createdByUserId,
-    name,
-    userType,
-    expiresAt: expiresAt || null,
-    isActive: true,
-  });
+  // Use raw SQL to avoid Drizzle ORM issues with default values
+  const expiresAtSql = expiresAt ? sql`${expiresAt}` : sql`NULL`;
+  
+  const result = await db.execute(
+    sql`INSERT INTO accessTokens (token, createdByUserId, name, userType, expiresAt, isActive) 
+        VALUES (${token}, ${createdByUserId}, ${name}, ${userType}, ${expiresAtSql}, 1)`
+  );
 
   return {
     token,
-    id: (result as any).insertId,
+    id: (result as any)[0].insertId,
   };
 }
 
