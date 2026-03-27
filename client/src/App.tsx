@@ -26,7 +26,7 @@ function Router() {
 
   return (
     <Switch>
-      <Route path={"/ "} component={isAuthenticated ? TutoriaManagerIntegrated : LoginTypeSelector} />
+      <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : LoginTypeSelector} />
       <Route path={"/app"} component={TutoriaManagerIntegrated} />
       <Route path={"/login"} component={LoginTypeSelector} />
       <Route path={"/register"} component={SimpleRegisterPage} />
