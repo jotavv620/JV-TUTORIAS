@@ -292,3 +292,17 @@
 - [x] 51 testes continuam passando
 - [x] Build bem-sucedido
 - [x] Secrets configurados e validados
+
+
+## CORREÇÃO - AUTENTICAÇÃO LOCAL (EMAIL/SENHA) - CONCLUÍDO
+
+- [x] Corrigir tela inicial para remover referências ao Manus OAuth
+- [x] Criar botões "Entrar como Admin" e "Entrar como Bolsista" que abrem modais de login
+- [x] Implementar página de login local com email/senha (modal de login)
+- [x] Implementar página de registro local com email/senha (modal de registro)
+- [x] Integrar fluxo de autenticação com cookies de sessão (useAuth hook)
+- [x] Testar login e registro funcionando corretamente (51 testes passando)
+- [x] Remover dependência de Manus OAuth da tela inicial
+- [x] Adicionar seção de features (Organize Tutorias, Sincronize com Google, Gamificação)
+- [x] Implementar loading states e toast notifications
+- [x] Design responsivo com gradiente e componentes modernos
