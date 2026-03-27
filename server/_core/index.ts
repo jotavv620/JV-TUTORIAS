@@ -36,9 +36,19 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  
+  // Health check endpoint (must be before Vite middleware)
+  app.get("/api/health", (_req, res) => {
+    res.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    });
+  });
+  
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
-  // tRPC API
+  
+  // tRPC API (must be before Vite middleware)
   app.use(
     "/api/trpc",
     createExpressMiddleware({
@@ -47,6 +57,7 @@ async function startServer() {
     })
   );
   // development mode uses Vite, production mode uses static files
+  // IMPORTANT: Vite middleware must be registered LAST because it has a catch-all route
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
