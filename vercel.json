@@ -14,15 +14,19 @@
   "rewrites": [
     {
       "source": "/api/trpc/:path*",
-      "destination": "/api/index.ts"
+      "destination": "/api"
     },
     {
       "source": "/api/oauth/:path*",
-      "destination": "/api/index.ts"
+      "destination": "/api"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api"
     },
     {
       "source": "/api/:path*",
-      "destination": "/api/index.ts"
+      "destination": "/api"
     },
     {
       "source": "/:path*",

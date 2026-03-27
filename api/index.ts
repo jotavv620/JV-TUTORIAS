@@ -1,35 +1,65 @@
-import "dotenv/config";
-import express, { Request, Response } from "express";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { appRouter } from "../server/routers";
-import { createContext } from "../server/_core/context";
-import { registerOAuthRoutes } from "../server/_core/oauth";
+/**
+ * Vercel Serverless Function Entry Point
+ * 
+ * This file is the bridge between Vercel's serverless runtime and the Express app.
+ * It creates the Express app on demand and handles incoming HTTP requests.
+ * 
+ * The actual server configuration is in server/_core/index.ts
+ */
 
-const app = express();
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-// Configure body parser with larger size limit for file uploads
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+let cachedApp: any = null;
 
-// Health check endpoint
-app.get("/api/health", (_req: Request, res: Response) => {
-  res.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
-});
+/**
+ * Get or create the Express app
+ * The app is cached after first creation to avoid reinitializing on every request
+ */
+async function getApp() {
+  if (cachedApp) {
+    return cachedApp;
+  }
 
-// OAuth routes
-registerOAuthRoutes(app);
+  try {
+    // Import the createApp function from the compiled server
+    const { default: createApp } = await import("../dist/index.js");
+    
+    // Create the Express app with all middleware configured
+    cachedApp = await createApp();
+    
+    console.log("[Vercel] Express app initialized successfully");
+    return cachedApp;
+  } catch (error) {
+    console.error("[Vercel] Failed to initialize Express app:", error);
+    throw error;
+  }
+}
 
-// tRPC API
-app.use(
-  "/api/trpc",
-  createExpressMiddleware({
-    router: appRouter,
-    createContext,
-  })
-);
-
-// Export for Vercel serverless
-export default app;
+/**
+ * Vercel Serverless Handler
+ * This function is called by Vercel for every HTTP request
+ */
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  try {
+    // Get the Express app
+    const app = await getApp();
+    
+    // Call the Express app with the request and response
+    // Express will handle routing, middleware, and response
+    return app(req, res);
+  } catch (error) {
+    console.error("[Vercel Handler] Error:", error);
+    
+    // Return error response
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: "Internal Server Error",
+        message: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+}
