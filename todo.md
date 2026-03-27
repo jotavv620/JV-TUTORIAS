@@ -254,3 +254,41 @@
 - [x] Build bem-sucedido
 - [x] Dev server rodando normalmente
 - [x] Botão funcional e integrado com backend
+
+
+## AUTENTICAÇÃO OAUTH COM GOOGLE - CONCLUÍDO
+
+### FASE 1: Configurar Credenciais OAuth
+- [x] Variáveis de ambiente configuradas (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_OAUTH_REDIRECT_URI)
+- [x] Credenciais podem ser obtidas no Google Cloud Console
+
+### FASE 2: Banco de Dados
+- [x] Criada tabela googleAuthTokens com campos userId, accessToken, refreshToken, expiresAt
+- [x] Índice único em userId para buscas rápidas
+- [x] Funções em db.ts: saveGoogleAuthToken, getGoogleAuthToken, deleteGoogleAuthToken, updateGoogleAuthTokenExpiry
+
+### FASE 3: Serviço OAuth
+- [x] Criado googleOAuthService.ts com:
+  * generateAuthorizationUrl() - Gera URL de autorização
+  * exchangeCodeForTokens() - Troca código por tokens
+  * refreshAccessToken() - Renova access token
+  * revokeAccessToken() - Revoga tokens
+  * createAuthenticatedClient() - Cria cliente OAuth autenticado
+  * getUserInfo() - Obtém informações do usuário
+
+### FASE 4: Mutations tRPC
+- [x] google.getAuthUrl - Gera URL de autenticação
+- [x] google.handleCallback - Processa código de autorização
+- [x] google.disconnect - Desconecta conta Google
+- [x] google.getStatus - Verifica status de conexão
+
+### FASE 5: UI
+- [x] Criado GoogleOAuthSettings.tsx com botões Conectar/Desconectar
+- [x] Mostra status de conexão (conectado/desconectado)
+- [x] Exibe data de expiração do token
+- [x] Loading states durante operações
+
+### FASE 6: Testes
+- [x] 51 testes continuam passando
+- [x] Build bem-sucedido
+- [x] Secrets configurados e validados

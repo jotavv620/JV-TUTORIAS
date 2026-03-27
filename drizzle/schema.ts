@@ -191,3 +191,20 @@ export const leaderboard = mysqlTable("leaderboard", {
 
 export type Leaderboard = typeof leaderboard.$inferSelect;
 export type InsertLeaderboard = typeof leaderboard.$inferInsert;
+
+
+// Google OAuth Tokens
+export const googleAuthTokens = mysqlTable("googleAuthTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  accessToken: text("accessToken").notNull(),
+  refreshToken: text("refreshToken"),
+  expiresAt: timestamp("expiresAt"),
+  scope: text("scope"),
+  tokenType: varchar("tokenType", { length: 50 }).default("Bearer").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type GoogleAuthToken = typeof googleAuthTokens.$inferSelect;
+export type InsertGoogleAuthToken = typeof googleAuthTokens.$inferInsert;

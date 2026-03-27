@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista } from "../drizzle/schema";
+import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, googleAuthTokens, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista, GoogleAuthToken } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -526,4 +526,58 @@ export async function getTutoriaById(tutoriaId: number) {
   
   const result = await db.select().from(tutorias).where(eq(tutorias.id, tutoriaId)).limit(1);
   return result[0] || null;
+}
+
+// Google OAuth Token functions
+export async function saveGoogleAuthToken(
+  userId: number,
+  accessToken: string,
+  refreshToken: string | null,
+  expiresAt: Date | null,
+  scope: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(googleAuthTokens).values({
+    userId,
+    accessToken,
+    refreshToken,
+    expiresAt,
+    scope,
+    tokenType: 'Bearer',
+  }).onDuplicateKeyUpdate({
+    set: {
+      accessToken,
+      refreshToken,
+      expiresAt,
+      scope,
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function getGoogleAuthToken(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(googleAuthTokens).where(eq(googleAuthTokens.userId, userId)).limit(1);
+  return result[0] || null;
+}
+
+export async function deleteGoogleAuthToken(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.delete(googleAuthTokens).where(eq(googleAuthTokens.userId, userId));
+}
+
+export async function updateGoogleAuthTokenExpiry(userId: number, expiresAt: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.update(googleAuthTokens).set({
+    expiresAt,
+    updatedAt: new Date(),
+  }).where(eq(googleAuthTokens.userId, userId));
 }

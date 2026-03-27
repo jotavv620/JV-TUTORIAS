@@ -117,6 +117,73 @@ export const appRouter = router({
       }),
   }),
 
+  // Google OAuth router
+  google: router({
+    getAuthUrl: protectedProcedure.query(({ ctx }) => {
+      try {
+        const authUrl = googleOAuth.generateAuthorizationUrl(ctx.user.id.toString());
+        return { authUrl };
+      } catch (error: any) {
+        throw new Error(error.message || 'Erro ao gerar URL de autenticação');
+      }
+    }),
+
+    handleCallback: protectedProcedure
+      .input(z.object({
+        code: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const tokens = await googleOAuth.exchangeCodeForTokens(input.code);
+          
+          await db.saveGoogleAuthToken(
+            ctx.user.id,
+            tokens.accessToken,
+            tokens.refreshToken || null,
+            tokens.expiresAt,
+            tokens.scope || ''
+          );
+
+          return {
+            success: true,
+            message: 'Conta Google conectada com sucesso!',
+          };
+        } catch (error: any) {
+          throw new Error(error.message || 'Erro ao conectar com Google');
+        }
+      }),
+
+    disconnect: protectedProcedure.mutation(async ({ ctx }) => {
+      try {
+        const token = await db.getGoogleAuthToken(ctx.user.id);
+        
+        if (token) {
+          await googleOAuth.revokeAccessToken(token.accessToken);
+          await db.deleteGoogleAuthToken(ctx.user.id);
+        }
+
+        return {
+          success: true,
+          message: 'Conta Google desconectada com sucesso!',
+        };
+      } catch (error: any) {
+        throw new Error(error.message || 'Erro ao desconectar Google');
+      }
+    }),
+
+    getStatus: protectedProcedure.query(async ({ ctx }) => {
+      try {
+        const token = await db.getGoogleAuthToken(ctx.user.id);
+        return {
+          connected: !!token,
+          expiresAt: token?.expiresAt || null,
+        };
+      } catch (error: any) {
+        throw new Error(error.message || 'Erro ao verificar status');
+      }
+    }),
+  }),
+
   // Tutorias router
   tutorias: router({
     list: protectedProcedure.query(async () => {
