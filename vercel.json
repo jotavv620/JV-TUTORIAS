@@ -2,30 +2,26 @@
   "version": 2,
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --frozen-lockfile",
   "framework": "vite",
   "functions": {
     "api/index.ts": {
-      "runtime": "nodejs20.x",
+      "runtime": "nodejs@20.x",
       "maxDuration": 30
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/trpc/(.*)",
-      "dest": "/api/index.ts"
+      "source": "/api/trpc/:path*",
+      "destination": "/api/index.ts"
     },
     {
-      "src": "/api/oauth/callback",
-      "dest": "/api/index.ts"
+      "source": "/api/oauth/:path*",
+      "destination": "/api/index.ts"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/api/:path*",
+      "destination": "/api/index.ts"
     }
   ]
 }
