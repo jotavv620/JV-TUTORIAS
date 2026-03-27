@@ -116,6 +116,27 @@ export const appRouter = router({
           throw new Error(error.message || "Erro ao fazer login");
         }
       }),
+    loginWithToken: publicProcedure
+      .input(z.object({
+        token: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const { loginWithAccessToken } = await import("./_core/accessTokenService");
+          const user = await loginWithAccessToken(input.token);
+          
+          return { 
+            success: true,
+            message: "Acesso concedido com sucesso",
+            userId: user.id,
+            userType: user.userType,
+            name: user.name,
+            email: user.email
+          };
+        } catch (error: any) {
+          throw new Error(error.message || "Código de acesso inválido");
+        }
+      }),
   }),
 
   // Google OAuth router

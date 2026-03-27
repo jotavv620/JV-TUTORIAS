@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS accessTokens (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  token VARCHAR(64) NOT NULL UNIQUE,\n  userId INT,\n  createdByUserId INT NOT NULL,\n  name VARCHAR(255) NOT NULL,\n  userType ENUM('admin', 'professor', 'bolsista') DEFAULT 'bolsista' NOT NULL,\n  expiresAt TIMESTAMP NULL,\n  usedAt TIMESTAMP NULL,\n  isActive BOOLEAN DEFAULT TRUE NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,\n  FOREIGN KEY (createdByUserId) REFERENCES users(id)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute CREATE TABLE IF NOT EXISTS accessTokens (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  token VARCHAR(64) NOT NULL UNIQUE,\n  userId INT,\n  createdByUserId INT NOT NULL,\n  name VARCHAR(255) NOT NULL,\n  userType ENUM('admin', 'professor', 'bolsista') DEFAULT 'bolsista' NOT NULL,\n  expiresAt TIMESTAMP NULL,\n  usedAt TIMESTAMP NULL,\n  isActive BOOLEAN DEFAULT TRUE NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,\n  FOREIGN KEY (createdByUserId) REFERENCES users(id)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 298
+}

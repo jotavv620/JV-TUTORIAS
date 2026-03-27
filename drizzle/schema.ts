@@ -235,3 +235,22 @@ export const emailVerificationTokens = mysqlTable("emailVerificationTokens", {
 
 export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
 export type InsertEmailVerificationToken = typeof emailVerificationTokens.$inferInsert;
+
+
+// Access tokens table - for quick login without email/password
+export const accessTokens = mysqlTable("accessTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  token: varchar("token", { length: 64 }).notNull().unique(), // Random 32-byte hex string
+  userId: int("userId").references(() => users.id, { onDelete: "cascade" }),
+  createdByUserId: int("createdByUserId").notNull().references(() => users.id), // Admin who created it
+  name: varchar("name", { length: 255 }).notNull(), // e.g., "João Silva - Bolsista"
+  userType: mysqlEnum("userType", ["admin", "professor", "bolsista"]).default("bolsista").notNull(),
+  expiresAt: timestamp("expiresAt"), // Optional expiration
+  usedAt: timestamp("usedAt"), // When the token was first used to login
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AccessToken = typeof accessTokens.$inferSelect;
+export type InsertAccessToken = typeof accessTokens.$inferInsert;

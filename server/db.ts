@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, googleAuthTokens, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista, GoogleAuthToken } from "../drizzle/schema";
+import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, googleAuthTokens, accessTokens, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista, GoogleAuthToken, AccessToken, InsertAccessToken } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -580,4 +580,75 @@ export async function updateGoogleAuthTokenExpiry(userId: number, expiresAt: Dat
     expiresAt,
     updatedAt: new Date(),
   }).where(eq(googleAuthTokens.userId, userId));
+}
+
+
+// Access token functions
+export async function generateAccessToken(createdByUserId: number, name: string, userType: 'admin' | 'professor' | 'bolsista', expiresAt?: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Generate random token (32 bytes hex)
+  const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  
+  return await db.insert(accessTokens).values({
+    token,
+    createdByUserId,
+    name,
+    userType,
+    expiresAt: expiresAt || null,
+    isActive: true,
+  });
+}
+
+export async function validateAccessToken(token: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(accessTokens).where(
+    eq(accessTokens.token, token)
+  ).limit(1);
+  
+  if (result.length === 0) return null;
+  
+  const accessToken = result[0];
+  
+  // Check if token is active
+  if (!accessToken.isActive) return null;
+  
+  // Check if token is expired
+  if (accessToken.expiresAt && new Date() > accessToken.expiresAt) return null;
+  
+  // Check if token was already used
+  if (accessToken.usedAt) return null;
+  
+  return accessToken;
+}
+
+export async function useAccessToken(tokenId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.update(accessTokens).set({
+    userId,
+    usedAt: new Date(),
+  }).where(eq(accessTokens.id, tokenId));
+}
+
+export async function getAccessTokensByAdmin(createdByUserId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(accessTokens).where(
+    eq(accessTokens.createdByUserId, createdByUserId)
+  );
+}
+
+export async function deactivateAccessToken(tokenId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.update(accessTokens).set({
+    isActive: false,
+  }).where(eq(accessTokens.id, tokenId));
 }

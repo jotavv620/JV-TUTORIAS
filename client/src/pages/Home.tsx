@@ -1,27 +1,41 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
-import { Mail, Lock, LogIn, UserPlus } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, Key } from 'lucide-react';
 
 export default function Home() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [loginMode, setLoginMode] = useState<'email' | 'token'>('token'); // Default to token
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [accessToken, setAccessToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Login mutation
+  // Login with email mutation
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: () => {
       toast.success('Login realizado com sucesso!');
       setEmail('');
       setPassword('');
       setIsLoading(false);
-      // Redirect to dashboard
       window.location.href = '/';
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Erro ao fazer login');
+      setIsLoading(false);
+    },
+  });
+
+  // Login with access token mutation
+  const loginWithTokenMutation = trpc.auth.loginWithToken.useMutation({
+    onSuccess: () => {
+      toast.success('Acesso concedido! Bem-vindo!');
+      setAccessToken('');
+      setIsLoading(false);
+      window.location.href = '/';
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Código de acesso inválido');
       setIsLoading(false);
     },
   });
@@ -33,7 +47,7 @@ export default function Home() {
       setEmail('');
       setPassword('');
       setName('');
-      setIsLogin(true);
+      setLoginMode('email');
       setIsLoading(false);
     },
     onError: (error: any) => {
@@ -42,7 +56,7 @@ export default function Home() {
     },
   });
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLoginWithEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       toast.error('Preencha email e senha');
@@ -52,6 +66,18 @@ export default function Home() {
     await loginMutation.mutateAsync({
       email,
       password,
+    });
+  };
+
+  const handleLoginWithToken = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessToken) {
+      toast.error('Insira o código de acesso');
+      return;
+    }
+    setIsLoading(true);
+    await loginWithTokenMutation.mutateAsync({
+      token: accessToken,
     });
   };
 
@@ -88,109 +114,152 @@ export default function Home() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100">
-          {/* Tabs */}
+          {/* Mode Selector */}
           <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-lg">
             <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                isLogin
+              onClick={() => setLoginMode('token')}
+              className={`flex-1 py-2 px-3 rounded-md font-medium transition-all text-sm ${
+                loginMode === 'token'
                   ? 'bg-white text-orange-600 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <LogIn className="w-4 h-4 inline mr-2" />
-              Entrar
+              <Key className="w-4 h-4 inline mr-1" />
+              Código
             </button>
             <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                !isLogin
+              onClick={() => setLoginMode('email')}
+              className={`flex-1 py-2 px-3 rounded-md font-medium transition-all text-sm ${
+                loginMode === 'email'
                   ? 'bg-white text-orange-600 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <UserPlus className="w-4 h-4 inline mr-2" />
-              Registrar
+              <LogIn className="w-4 h-4 inline mr-1" />
+              Email
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
-            {/* Name field (only for register) */}
-            {!isLogin && (
+          {/* Token Login Form */}
+          {loginMode === 'token' && (
+            <form onSubmit={handleLoginWithToken} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Nome Completo
+                  Código de Acesso
                 </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="João Silva"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Key className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={accessToken}
+                    onChange={(e) => setAccessToken(e.target.value.toUpperCase())}
+                    placeholder="Cole seu código aqui"
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono"
+                    disabled={isLoading}
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">Código fornecido pelo administrador</p>
               </div>
-            )}
 
-            {/* Email field */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  disabled={isLoading}
-                />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-4 h-4" />
+                    Acessar com Código
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* Email Login/Register Form */}
+          {loginMode === 'email' && (
+            <>
+              {/* Tabs for Login/Register */}
+              <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-lg">
+                <button
+                  onClick={() => {}}
+                  className="flex-1 py-2 px-4 rounded-md font-medium transition-all bg-white text-orange-600 shadow-sm text-sm"
+                >
+                  <LogIn className="w-4 h-4 inline mr-1" />
+                  Entrar
+                </button>
+                <button
+                  onClick={() => {}}
+                  className="flex-1 py-2 px-4 rounded-md font-medium transition-all text-slate-600 hover:text-slate-900 text-sm"
+                >
+                  <UserPlus className="w-4 h-4 inline mr-1" />
+                  Registrar
+                </button>
               </div>
-            </div>
 
-            {/* Password field */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Senha
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              <form onSubmit={handleLoginWithEmail} className="space-y-4">
+                {/* Email field */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                {/* Password field */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Senha
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <button
+                  type="submit"
                   disabled={isLoading}
-                />
-              </div>
-              {!isLogin && (
-                <p className="text-xs text-slate-500 mt-1">Mínimo 6 caracteres</p>
-              )}
-            </div>
-
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                <>
-                  {isLogin ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                  {isLogin ? 'Entrar' : 'Criar Conta'}
-                </>
-              )}
-            </button>
-          </form>
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-4 h-4" />
+                      Entrar
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
+          )}
 
           {/* Divider */}
           <div className="relative my-6">
@@ -231,24 +300,24 @@ export default function Home() {
 
         {/* Footer */}
         <p className="text-center text-slate-500 text-sm mt-6">
-          {isLogin ? (
+          {loginMode === 'token' ? (
             <>
-              Não tem conta?{' '}
+              Não tem código?{' '}
               <button
-                onClick={() => setIsLogin(false)}
+                onClick={() => setLoginMode('email')}
                 className="text-orange-600 hover:text-orange-700 font-medium"
               >
-                Registre-se aqui
+                Use email/senha
               </button>
             </>
           ) : (
             <>
-              Já tem conta?{' '}
+              Tem um código de acesso?{' '}
               <button
-                onClick={() => setIsLogin(true)}
+                onClick={() => setLoginMode('token')}
                 className="text-orange-600 hover:text-orange-700 font-medium"
               >
-                Faça login
+                Use o código
               </button>
             </>
           )}
