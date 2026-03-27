@@ -12,11 +12,11 @@ export function GoogleOAuthSettings() {
 
   // Get auth URL
   const getAuthUrlMutation = trpc.google.getAuthUrl.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       window.location.href = data.authUrl;
     },
-    onError: (error) => {
-      toast.error(error.message || 'Erro ao conectar com Google');
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erro ao conectar com Google');
       setIsLoading(false);
     },
   });
@@ -28,8 +28,8 @@ export function GoogleOAuthSettings() {
       refetchStatus();
       toast.success('Desconectado do Google com sucesso!');
     },
-    onError: (error) => {
-      toast.error(error.message || 'Erro ao desconectar do Google');
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erro ao desconectar do Google');
     },
   });
 

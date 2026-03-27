@@ -19,6 +19,7 @@ import { parseCSV, ParseError } from "./_core/csvParser";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 import { users } from "../drizzle/schema";
+import { generateAuthorizationUrl, exchangeCodeForTokens, revokeAccessToken } from "./_core/googleOAuthService";
 
 export const appRouter = router({
   system: systemRouter,
@@ -121,7 +122,7 @@ export const appRouter = router({
   google: router({
     getAuthUrl: protectedProcedure.query(({ ctx }) => {
       try {
-        const authUrl = googleOAuth.generateAuthorizationUrl(ctx.user.id.toString());
+        const authUrl = generateAuthorizationUrl(ctx.user.id.toString());
         return { authUrl };
       } catch (error: any) {
         throw new Error(error.message || 'Erro ao gerar URL de autenticação');
@@ -134,7 +135,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         try {
-          const tokens = await googleOAuth.exchangeCodeForTokens(input.code);
+          const tokens = await exchangeCodeForTokens(input.code);
           
           await db.saveGoogleAuthToken(
             ctx.user.id,
@@ -158,7 +159,7 @@ export const appRouter = router({
         const token = await db.getGoogleAuthToken(ctx.user.id);
         
         if (token) {
-          await googleOAuth.revokeAccessToken(token.accessToken);
+          await revokeAccessToken(token.accessToken);
           await db.deleteGoogleAuthToken(ctx.user.id);
         }
 
