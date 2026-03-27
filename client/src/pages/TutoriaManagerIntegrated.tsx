@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { AnalyticsTab, NotificationsTab, CalendarTab } from './AdvancedComponents';
 import { Leaderboard, MedalsShowcase, AchievementsShowcase, PointsSummary } from './GamificationComponents';
+import AccessTokenManager from '@/components/AccessTokenManager';
 import { toast } from 'sonner';
 
 interface Tutoria {
@@ -486,7 +487,12 @@ export default function TutoriaManagerIntegrated() {
             <AchievementsShowcase achievements={[]} />
           </div>
         ) : activeTab === 'settings' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="space-y-6">
+            {/* Access Token Manager */}
+            <AccessTokenManager />
+            
+            {/* Settings Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
               <h3 className="font-black uppercase tracking-widest text-xs mb-6 flex items-center gap-2 text-orange-500"><BookOpen size={16} /> Disciplinas</h3>
               <div className="flex gap-2 mb-6">
@@ -594,6 +600,7 @@ export default function TutoriaManagerIntegrated() {
                   </div>
                 ))}
               </div>
+            </div>
             </div>
           </div>
         ) : null}

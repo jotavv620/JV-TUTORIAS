@@ -206,6 +206,108 @@ export const appRouter = router({
     }),
   }),
 
+  // Access Tokens router for admin to manage access codes
+  accessTokens: router({
+    // Generate new access token
+    generate: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        userType: z.enum(['admin', 'professor', 'bolsista']),
+        expiresInDays: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          // Only admins can generate tokens
+          if (ctx.user?.role !== 'admin') {
+            throw new Error('Apenas administradores podem gerar códigos de acesso');
+          }
+
+          const { createAccessToken } = await import('./_core/accessTokenService');
+          
+          let expiresAt: Date | undefined;
+          if (input.expiresInDays) {
+            expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + input.expiresInDays);
+          }
+
+          const result = await createAccessToken(
+            ctx.user.id,
+            input.name,
+            input.userType,
+            expiresAt
+          );
+
+          return {
+            success: true,
+            token: result.token,
+            message: 'Código de acesso gerado com sucesso!',
+          };
+        } catch (error: any) {
+          throw new Error(error.message || 'Erro ao gerar código de acesso');
+        }
+      }),
+
+    // List all access tokens created by admin
+    list: protectedProcedure.query(async ({ ctx }) => {
+      try {
+        if (ctx.user?.role !== 'admin') {
+          throw new Error('Apenas administradores podem visualizar códigos');
+        }
+
+        const { getTokensByAdmin } = await import('./_core/accessTokenService');
+        return await getTokensByAdmin(ctx.user.id);
+      } catch (error: any) {
+        throw new Error(error.message || 'Erro ao listar códigos');
+      }
+    }),
+
+    // Deactivate an access token
+    deactivate: protectedProcedure
+      .input(z.object({
+        tokenId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          if (ctx.user?.role !== 'admin') {
+            throw new Error('Apenas administradores podem desativar códigos');
+          }
+
+          const { deactivateToken } = await import('./_core/accessTokenService');
+          await deactivateToken(input.tokenId);
+
+          return {
+            success: true,
+            message: 'Código desativado com sucesso!',
+          };
+        } catch (error: any) {
+          throw new Error(error.message || 'Erro ao desativar código');
+        }
+      }),
+
+    // Delete an access token
+    delete: protectedProcedure
+      .input(z.object({
+        tokenId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          if (ctx.user?.role !== 'admin') {
+            throw new Error('Apenas administradores podem deletar códigos');
+          }
+
+          const { deleteToken } = await import('./_core/accessTokenService');
+          await deleteToken(input.tokenId);
+
+          return {
+            success: true,
+            message: 'Código deletado com sucesso!',
+          };
+        } catch (error: any) {
+          throw new Error(error.message || 'Erro ao deletar código');
+        }
+      }),
+  }),
+
   // Tutorias router
   tutorias: router({
     list: protectedProcedure.query(async () => {
