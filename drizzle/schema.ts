@@ -41,6 +41,8 @@ export const tutorias = mysqlTable("tutorias", {
   horarioTermino: varchar("horarioTermino", { length: 5 }).notNull(),
   status: mysqlEnum("status", ["scheduled", "in_progress", "completed"]).default("scheduled").notNull(),
   reminder_sent: boolean("reminder_sent").default(false).notNull(),
+  googleCalendarEventId: varchar("googleCalendarEventId", { length: 255 }),
+  googleCalendarSynced: boolean("googleCalendarSynced").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

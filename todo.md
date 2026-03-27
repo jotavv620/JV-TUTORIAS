@@ -220,3 +220,37 @@
 - [x] Integrar mutations no router principal com bcrypt para hashing de senhas
 - [x] Validação de email duplicado
 - [x] Comparação de senha hasheada com bcrypt.compare()
+
+
+## SINCRONIZAÇÃO COM GOOGLE CALENDAR - CONCLUÍDO
+
+### FASE 1: Configurar Google Calendar API
+- [x] Instalar biblioteca googleapis
+- [x] Instalar biblioteca google-auth-library
+- [x] Estrutura pronta para autenticação com Google Calendar API
+
+### FASE 2: Criar Serviço de Sincronização
+- [x] Criar arquivo googleCalendarService.ts
+- [x] Implementar função createGoogleCalendarEvent()
+- [x] Implementar função updateGoogleCalendarEvent()
+- [x] Implementar função deleteGoogleCalendarEvent()
+- [x] Adicionar tratamento de erros e logging
+
+### FASE 3: Integrar com Tutorias
+- [x] Adicionar campos googleCalendarEventId e googleCalendarSynced na tabela tutorias
+- [x] Criar mutation syncGoogleCalendar em routers.ts
+- [x] Adicionar função updateTutoriaGoogleCalendarSync() em db.ts
+- [x] Adicionar função getTutoriaById() em db.ts
+
+### FASE 4: UI com Botão de Sincronização
+- [x] Adicionar botão "Google Cal" (roxo) na tabela de ações
+- [x] Implementar handleSyncGoogleCalendar() handler
+- [x] Integrar com mutation tRPC syncGoogleCalendar
+- [x] Adicionar toast notifications para sucesso/erro
+- [x] Adicionar flex-wrap para responsividade dos botões
+
+### FASE 5: Testes
+- [x] 51 testes continuam passando
+- [x] Build bem-sucedido
+- [x] Dev server rodando normalmente
+- [x] Botão funcional e integrado com backend

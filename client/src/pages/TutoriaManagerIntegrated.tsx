@@ -247,6 +247,24 @@ export default function TutoriaManagerIntegrated() {
     }
   };
 
+  const syncGoogleCalendarMutation = trpc.tutorias.syncGoogleCalendar.useMutation({
+    onSuccess: () => {
+      refetchTutorias();
+      toast.success('Tutoria sincronizada com Google Calendar!');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Erro ao sincronizar com Google Calendar');
+    },
+  });
+
+  const handleSyncGoogleCalendar = async (tutoriaId: number) => {
+    try {
+      await syncGoogleCalendarMutation.mutateAsync({ tutoriaId });
+    } catch (error) {
+      console.error('Erro ao sincronizar:', error);
+    }
+  };
+
   const handleAddItem = async (type: string, value: string, email?: string) => {
     if (!value.trim()) return;
     try {
@@ -439,9 +457,10 @@ export default function TutoriaManagerIntegrated() {
                           <p className="text-xs text-slate-500 font-bold">{tutoria.horario} - {tutoria.horarioTermino}</p>
                         </td>
                         <td className="px-4 py-5">
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <button onClick={() => setActiveCheckin(tutoria)} className="px-3 py-1 bg-blue-500 text-white rounded-lg text-xs font-bold hover:bg-blue-600">Check-in</button>
                             <button onClick={() => setActiveFeedback(tutoria)} className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Feedback</button>
+                            <button onClick={() => handleSyncGoogleCalendar(tutoria.id)} className="px-3 py-1 bg-purple-500 text-white rounded-lg text-xs font-bold hover:bg-purple-600">Google Cal</button>
                             <button onClick={() => setDeleteConfirmation(tutoria.id)} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600">Deletar</button>
                           </div>
                         </td>

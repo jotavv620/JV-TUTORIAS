@@ -504,3 +504,26 @@ export async function verifyLocalUser(email: string, password: string) {
   
   return null;
 }
+
+// Google Calendar sync functions
+export async function updateTutoriaGoogleCalendarSync(
+  tutoriaId: number,
+  googleCalendarEventId: string,
+  googleCalendarSynced: boolean = true
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.update(tutorias).set({
+    googleCalendarEventId,
+    googleCalendarSynced,
+  }).where(eq(tutorias.id, tutoriaId));
+}
+
+export async function getTutoriaById(tutoriaId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(tutorias).where(eq(tutorias.id, tutoriaId)).limit(1);
+  return result[0] || null;
+}
