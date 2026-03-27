@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS passwordResetTokens (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  token VARCHAR(255) NOT NULL UNIQUE,\n  expiresAt TIMESTAMP NOT NULL,\n  used BOOLEAN DEFAULT FALSE NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE\n);\n\nCREATE TABLE IF NOT EXISTS emailVerificationTokens (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  token VARCHAR(255) NOT NULL UNIQUE,\n  expiresAt TIMESTAMP NOT NULL,\n  verified BOOLEAN DEFAULT FALSE NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute CREATE TABLE IF NOT EXISTS passwordResetTokens (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  token VARCHAR(255) NOT NULL UNIQUE,\n  expiresAt TIMESTAMP NOT NULL,\n  used BOOLEAN DEFAULT FALSE NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE\n);\n\nCREATE TABLE IF NOT EXISTS emailVerificationTokens (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  token VARCHAR(255) NOT NULL UNIQUE,\n  expiresAt TIMESTAMP NOT NULL,\n  verified BOOLEAN DEFAULT FALSE NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 308
+}

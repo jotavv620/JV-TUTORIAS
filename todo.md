@@ -315,3 +315,59 @@
 - [x] Implementar fluxo de callback do Google
 - [x] Testar login com Google (51 testes passando)
 - [x] Validar criação automática de usuário ao fazer login com Google
+
+
+## RECUPERAÇÃO DE SENHA - EM PROGRESSO
+
+- [x] Criar tabela passwordResetTokens para armazenar tokens
+- [x] Implementar serviço passwordResetService com funções principais
+- [ ] Implementar mutation requestPasswordReset em routers.ts
+- [ ] Implementar mutation resetPassword em routers.ts
+- [ ] Criar página de reset de senha (ResetPassword.tsx)
+- [x] Enviar email com link de reset (integrado)
+- [x] Validar token e atualizar senha (integrado)
+
+## VERIFICAÇÃO DE EMAIL - EM PROGRESSO
+
+- [ ] Criar tabela emailVerificationTokens
+- [ ] Implementar mutation sendVerificationEmail
+- [ ] Implementar mutation verifyEmail
+- [ ] Criar página de verificação de email
+- [ ] Bloquear login até email ser verificado
+- [ ] Reenviar email de verificação
+
+## EDIÇÃO DE PERFIL - EM PROGRESSO
+
+- [ ] Criar página de edição de perfil
+- [ ] Implementar mutation updateProfile
+- [ ] Permitir editar nome, email, foto
+- [ ] Upload de foto para S3
+- [ ] Validar dados antes de atualizar
+- [ ] Mostrar foto do usuário no dashboard
+
+## SINCRONIZAÇÃO AUTOMÁTICA COM GOOGLE CALENDAR - EM PROGRESSO
+
+- [ ] Sincronizar automaticamente ao criar tutoria
+- [ ] Sincronizar automaticamente ao atualizar tutoria
+- [ ] Sincronizar automaticamente ao deletar tutoria
+- [ ] Mostrar status de sincronização na UI
+- [ ] Permitir desabilitar sincronização automática
+
+## CONTROLE DE ACESSO POR ROLES - EM PROGRESSO
+
+- [ ] Adicionar campo role na tabela users
+- [ ] Criar adminProcedure, professorProcedure, bolsistaProcedure
+- [ ] Restringir acesso a funcionalidades por role
+- [ ] Mostrar/ocultar abas baseado no role
+- [ ] Implementar proteção em todas as mutations
+- [ ] Testar acesso negado para roles não autorizados
+
+## IMPORTAÇÃO EM LOTE CSV - EM PROGRESSO
+
+- [ ] Criar componente de upload de arquivo CSV
+- [ ] Implementar parser CSV
+- [ ] Validar colunas obrigatórias
+- [ ] Mostrar preview dos dados
+- [ ] Criar mutation importFromCSV
+- [ ] Retornar relatório de sucesso/erro
+- [ ] Testar importação de múltiplos registros
