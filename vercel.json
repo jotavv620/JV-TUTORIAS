@@ -5,7 +5,7 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "vite",
   "functions": {
-    "api/index.ts": {
+    "api/index.mjs": {
       "runtime": "nodejs@20.x",
       "maxDuration": 30,
       "memory": 1024
