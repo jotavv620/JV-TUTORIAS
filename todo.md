@@ -164,3 +164,46 @@
 - [x] Testar arquivo com erros
 - [x] Testar duplicatas
 - [x] Testar validação de email (51 testes passando)
+
+
+## CORREÇÕES SOLICITADAS - EM PROGRESSO
+
+### FASE 1: Renomear Tutor para Bolsista
+- [ ] Alterar campo "tutor" para "bolsista" no schema
+- [ ] Atualizar mutation de criar tutoria
+- [ ] Atualizar UI para mostrar dropdown de bolsistas
+- [ ] Atualizar queries para retornar bolsista correto
+
+### FASE 2: Sincronização Google Calendar
+- [ ] Criar função para sincronizar com Google Calendar
+- [ ] Adicionar botão de sincronizar funcional
+- [ ] Implementar autenticação com Google
+- [ ] Testar criação de eventos no Google Calendar
+
+
+## LOGIN E REGISTRO - CONCLUÍDO
+
+### FASE 1: Corrigir Login/Registro
+- [x] Diagnosticar erros de autenticação
+- [x] Corrigir fluxo de OAuth
+- [x] Validar sessão de usuário
+
+### FASE 2: Página de Seleção
+- [x] Criar página inicial com 2 opções (Admin / Bolsista)
+- [x] Redirecionar para login apropriado
+- [x] Salvar tipo de usuário na sessão
+
+### FASE 3: Login Admin
+- [x] Criar página de login para Admin
+- [x] Validar credenciais de Admin
+- [x] Acesso completo ao sistema
+
+### FASE 4: Login Bolsista
+- [x] Criar página de login para Bolsista
+- [x] Restringir acesso apenas às suas tutorias
+- [x] Ocultar abas de Configurações e Gamificação
+
+### FASE 5: Testes
+- [x] Testar login Admin
+- [x] Testar login Bolsista
+- [x] Validar permissões (51 testes passando)

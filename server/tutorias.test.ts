@@ -49,7 +49,7 @@ describe("Tutorias Router", () => {
       disciplina: "Matemática",
       professor: "Dr. Silva",
       instituicao: "Campus A",
-      tutor: "João Santos",
+      bolsista: "João Santos",
       data: "2026-03-25",
       horario: "14:00",
       horarioTermino: "15:30",

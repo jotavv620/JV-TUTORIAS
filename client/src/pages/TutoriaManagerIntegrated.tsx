@@ -18,7 +18,7 @@ interface Tutoria {
   disciplina: string;
   professor: string;
   instituicao: string;
-  tutor: string;
+  bolsista: string;
   data: string;
   horario: string;
   horarioTermino: string;
@@ -117,6 +117,7 @@ export default function TutoriaManagerIntegrated() {
   const disciplinasNames = disciplinas.map((d: any) => d.nome || d);
   const professoresNames = professores.map((p: any) => p.nome || p);
   const instituicoesNames = instituicoes.map((i: any) => i.nome || i);
+  const bolsistasNames = bolsistasData.map((b: any) => b.nome || b);
 
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -128,7 +129,7 @@ export default function TutoriaManagerIntegrated() {
     instituicao: '',
     disciplina: '',
     professor: '',
-    tutor: '',
+    bolsista: '',
     data: '',
     horario: '',
     horarioTermino: ''
@@ -173,7 +174,7 @@ export default function TutoriaManagerIntegrated() {
     e.preventDefault();
     try {
       await createTutoriaMutation.mutateAsync(newTutoria);
-      setNewTutoria({ instituicao: '', disciplina: '', professor: '', tutor: '', data: '', horario: '', horarioTermino: '' });
+      setNewTutoria({ instituicao: '', disciplina: '', professor: '', bolsista: '', data: '', horario: '', horarioTermino: '' });
       setIsModalOpen(false);
       refetchTutorias();
       toast.success('Tutoria criada com sucesso!');
@@ -346,29 +347,31 @@ export default function TutoriaManagerIntegrated() {
 
         {/* Tabs */}
         <div className="max-w-7xl mx-auto px-6 flex gap-1 overflow-x-auto border-t border-slate-100">
-          {[
-            { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-            { id: 'analytics', label: 'Analítica', icon: LineChart },
-            { id: 'notifications', label: 'Notificações', icon: Bell },
-            { id: 'calendar', label: 'Calendário', icon: Calendar },
-            { id: 'gamification', label: 'Gamificação', icon: Trophy },
-            { id: 'settings', label: 'Configurações', icon: SettingsIcon },
-          ].map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-2 font-black text-xs uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-slate-600 hover:text-slate-800'
-                }`}
-              >
-                <Icon size={16} /> {tab.label}
-              </button>
-            );
-          })}
+          {
+            [
+              { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+              ...(user?.role === 'admin' ? [{ id: 'analytics', label: 'Analítica', icon: LineChart }] : []),
+              { id: 'notifications', label: 'Notificações', icon: Bell },
+              { id: 'calendar', label: 'Calendário', icon: Calendar },
+              ...(user?.role === 'admin' ? [{ id: 'gamification', label: 'Gamificação', icon: Trophy }] : []),
+              ...(user?.role === 'admin' ? [{ id: 'settings', label: 'Configurações', icon: SettingsIcon }] : []),
+            ].map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-4 px-2 font-black text-xs uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'border-orange-500 text-orange-600'
+                      : 'border-transparent text-slate-600 hover:text-slate-800'
+                  }`}
+                >
+                  <Icon size={16} /> {tab.label}
+                </button>
+              );
+            })
+          }
         </div>
       </header>
 
@@ -603,8 +606,11 @@ export default function TutoriaManagerIntegrated() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold mb-2 text-slate-700">Tutor</label>
-                <input type="text" value={newTutoria.tutor} onChange={(e) => setNewTutoria({...newTutoria, tutor: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+                <label className="block text-sm font-bold mb-2 text-slate-700">Bolsista *</label>
+                <select value={newTutoria.bolsista} onChange={(e) => setNewTutoria({...newTutoria, bolsista: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" required>
+                  <option value="">-- Selecione um bolsista --</option>
+                  {bolsistasNames.map((b: string) => <option key={b} value={b}>{b}</option>)}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2 text-slate-700">Data *</label>

@@ -41,7 +41,7 @@ export const appRouter = router({
         disciplina: z.string(),
         professor: z.string(),
         instituicao: z.string(),
-        tutor: z.string(),
+        bolsista: z.string(),
         data: z.string(),
         horario: z.string(),
         horarioTermino: z.string(),
@@ -59,7 +59,7 @@ export const appRouter = router({
           const emailData: TutoriaEmailData = {
             disciplina: input.disciplina,
             professor: input.professor,
-            tutor: input.tutor,
+            tutor: input.bolsista,
             data: input.data,
             horario: input.horario,
             horarioTermino: input.horarioTermino,
@@ -73,7 +73,7 @@ export const appRouter = router({
           }
           
           // Get bolsista email
-          const bolsistaData = await db.getBolsistaByName(input.tutor);
+          const bolsistaData = await db.getBolsistaByName(input.bolsista);
           if (bolsistaData?.email) {
             await sendBolsistaTutoriaEmail(bolsistaData.email, emailData);
           }

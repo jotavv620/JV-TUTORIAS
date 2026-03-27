@@ -33,7 +33,7 @@ export const tutorias = mysqlTable("tutorias", {
   disciplina: varchar("disciplina", { length: 255 }).notNull(),
   professor: varchar("professor", { length: 255 }).notNull(),
   instituicao: varchar("instituicao", { length: 255 }).notNull(),
-  tutor: varchar("tutor", { length: 255 }).notNull(),
+  bolsista: varchar("bolsista", { length: 255 }).notNull(),
   data: varchar("data", { length: 10 }).notNull(),
   horario: varchar("horario", { length: 5 }).notNull(),
   horarioTermino: varchar("horarioTermino", { length: 5 }).notNull(),

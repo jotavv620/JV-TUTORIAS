@@ -55,7 +55,7 @@ export async function checkAndSendReminders(): Promise<void> {
           const emailData: TutoriaEmailData = {
             disciplina: tutoria.disciplina,
             professor: tutoria.professor,
-            tutor: tutoria.tutor,
+            tutor: tutoria.bolsista,
             data: tutoria.data,
             horario: tutoria.horario,
             horarioTermino: tutoria.horarioTermino,
@@ -73,7 +73,7 @@ export async function checkAndSendReminders(): Promise<void> {
           const bolsistaData = await database
             .select()
             .from(bolsistas)
-            .where(eq(bolsistas.nome, tutoria.tutor))
+            .where(eq(bolsistas.nome, tutoria.bolsista))
             .limit(1);
 
           // Send reminders
