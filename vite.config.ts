@@ -162,6 +162,10 @@ export default defineConfig({
     },
   },
   envDir: path.resolve(import.meta.dirname),
+  define: {
+    __VITE_HMR_HOST__: JSON.stringify(process.env.VITE_HMR_HOST || "localhost"),
+    __VITE_HMR_PORT__: JSON.stringify(process.env.VITE_HMR_PORT || "443"),
+  },
   root: path.resolve(import.meta.dirname, "client"),
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
@@ -183,10 +187,10 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    hmr: {
+    hmr: process.env.VITE_HMR_HOST ? {
       protocol: "wss",
-      host: "0.0.0.0",
-      port: 443,
-    },
+      host: process.env.VITE_HMR_HOST,
+      port: process.env.VITE_HMR_PORT ? parseInt(process.env.VITE_HMR_PORT) : 443,
+    } : false,
   },
 });
