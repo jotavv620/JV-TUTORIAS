@@ -118,6 +118,109 @@ export const appRouter = router({
           throw new Error(error.message || "Erro ao fazer login");
         }
       }),
+    
+    loginWithToken: publicProcedure
+      .input(z.object({
+        token: z.string().min(1, 'Token é obrigatório'),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error('Banco de dados não disponível');
+
+          const tokenResult = await database.select().from(accessTokens)
+            .where(eq(accessTokens.token, input.token))
+            .limit(1);
+
+          if (tokenResult.length === 0) {
+            throw new Error('Token inválido');
+          }
+
+          const accessToken = tokenResult[0];
+
+          if (accessToken.revokedAt) {
+            throw new Error('Token foi revogado');
+          }
+
+          if (accessToken.expiresAt && new Date(accessToken.expiresAt) < new Date()) {
+            throw new Error('Token expirou');
+          }
+
+          if (accessToken.usedAt) {
+            throw new Error('Token já foi utilizado');
+          }
+
+          let user: any;
+          if (accessToken.userId) {
+            const userResult = await database.select().from(users)
+              .where(eq(users.id, accessToken.userId))
+              .limit(1);
+            
+            if (userResult.length === 0) {
+              throw new Error('Usuário não encontrado');
+            }
+            user = userResult[0];
+          } else {
+            const openId = crypto.randomBytes(16).toString('hex');
+            const insertResult = await database.insert(users).values({
+              openId,
+              name: accessToken.name || 'Usuário',
+              userType: accessToken.userType || 'bolsista',
+              registeredLocally: true,
+              loginMethod: 'token',
+              role: accessToken.userType === 'admin' ? 'admin' : 'user',
+            });
+
+            const newUserId = (insertResult as any)[0]?.insertId || (insertResult as any).insertId;
+            if (!newUserId) {
+              throw new Error('Erro ao criar usuário');
+            }
+
+            await database.update(accessTokens)
+              .set({ userId: newUserId })
+              .where(eq(accessTokens.id, accessToken.id));
+
+            const userResult = await database.select().from(users)
+              .where(eq(users.id, newUserId))
+              .limit(1);
+            
+            if (userResult.length === 0) {
+              throw new Error('Erro ao recuperar usuário criado');
+            }
+            user = userResult[0];
+          }
+
+          await database.update(accessTokens)
+            .set({ usedAt: new Date() })
+            .where(eq(accessTokens.id, accessToken.id));
+
+          const { sdk } = await import('./_core/sdk');
+          const sessionToken = await sdk.createSessionToken(user.openId, {
+            name: user.name || '',
+            expiresInMs: 365 * 24 * 60 * 60 * 1000,
+          });
+
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { 
+            ...cookieOptions, 
+            maxAge: 365 * 24 * 60 * 60 * 1000 
+          });
+
+          console.log('[Auth] User logged in with token:', { userId: user.id, userType: user.userType });
+
+          return { 
+            success: true,
+            message: 'Login realizado com sucesso',
+            userId: user.id,
+            userName: user.name,
+            userType: user.userType,
+            userRole: user.role,
+          };
+        } catch (error: any) {
+          console.error('[Auth] Error with loginWithToken:', error);
+          throw new Error(error.message || 'Erro ao fazer login com token');
+        }
+      }),
 
   }),
 
