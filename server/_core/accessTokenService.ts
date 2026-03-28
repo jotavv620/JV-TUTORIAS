@@ -95,7 +95,9 @@ export async function loginWithAccessToken(token: string) {
   }
 
   // Create new user from token
+  const openId = crypto.randomBytes(16).toString('hex');
   const newUserResult = await db.insert(users).values({
+    openId,
     name: accessToken.name,
     userType: accessToken.userType,
     registeredLocally: true,
