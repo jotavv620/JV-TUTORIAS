@@ -110,15 +110,16 @@ export default function TutoriaManagerIntegrated() {
   });
 
   // Keep full objects for proper key handling
-  const disciplinas = disciplinasData;
-  const professores = professoresData;
-  const instituicoes = instituicoesData;
+  const disciplinas = Array.isArray(disciplinasData) ? disciplinasData : [];
+  const professores = Array.isArray(professoresData) ? professoresData : [];
+  const instituicoes = Array.isArray(instituicoesData) ? instituicoesData : [];
+  const bolsistas = Array.isArray(bolsistasData) ? bolsistasData : [];
   
   // Extract just names for dropdowns
   const disciplinasNames = disciplinas.map((d: any) => d.nome || d);
   const professoresNames = professores.map((p: any) => p.nome || p);
   const instituicoesNames = instituicoes.map((i: any) => i.nome || i);
-  const bolsistasNames = bolsistasData.map((b: any) => b.nome || b);
+  const bolsistasNames = bolsistas.map((b: any) => b.nome || b);
 
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);
