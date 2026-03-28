@@ -20,6 +20,8 @@ import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 import { users } from "../drizzle/schema";
 import { generateAuthorizationUrl, exchangeCodeForTokens, revokeAccessToken } from "./_core/googleOAuthService";
+import crypto from 'crypto';
+import { accessTokens } from "../drizzle/schema";
 
 export const appRouter = router({
   system: systemRouter,
@@ -742,7 +744,7 @@ export const appRouter = router({
         }
         
         // Generate random token (32 bytes = 64 hex chars)
-        const token = require('crypto').randomBytes(32).toString('hex');
+        const token = crypto.randomBytes(32).toString('hex');
         
         const expiresAt = input.expiresInDays 
           ? new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000)
@@ -766,12 +768,11 @@ export const appRouter = router({
         }
         
         // Verify token belongs to this admin
-        const token = await db.getDb().then(db => {
-          if (!db) throw new Error('Database not available');
-          return db.select().from(require('../drizzle/schema').accessTokens).where(
-            eq(require('../drizzle/schema').accessTokens.id, input.tokenId)
-          ).limit(1);
-        });
+        const database = await db.getDb();
+        if (!database) throw new Error('Database not available');
+        const token = await database.select().from(accessTokens).where(
+          eq(accessTokens.id, input.tokenId)
+        ).limit(1);
         
         if (!token || token.length === 0) {
           throw new Error('Token não encontrado');
@@ -792,12 +793,11 @@ export const appRouter = router({
         }
         
         // Verify token belongs to this admin
-        const token = await db.getDb().then(db => {
-          if (!db) throw new Error('Database not available');
-          return db.select().from(require('../drizzle/schema').accessTokens).where(
-            eq(require('../drizzle/schema').accessTokens.id, input.tokenId)
-          ).limit(1);
-        });
+        const database = await db.getDb();
+        if (!database) throw new Error('Database not available');
+        const token = await database.select().from(accessTokens).where(
+          eq(accessTokens.id, input.tokenId)
+        ).limit(1);
         
         if (!token || token.length === 0) {
           throw new Error('Token não encontrado');
