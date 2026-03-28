@@ -140,11 +140,7 @@ export const appRouter = router({
           
           return { 
             success: true,
-            message: "Acesso concedido com sucesso",
-            userId: user.id,
-            userType: user.userType,
-            name: user.name,
-            email: user.email
+            message: "Acesso concedido com sucesso"
           };
         } catch (error: any) {
           throw new Error(error.message || "Código de acesso inválido");
