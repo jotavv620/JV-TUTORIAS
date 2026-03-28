@@ -8,8 +8,6 @@ import TutoriaManagerIntegrated from "./pages/TutoriaManagerIntegrated";
 import PublicDashboard from "./pages/PublicDashboard";
 import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
 import Home from "./pages/Home";
-import LoginTest from "./pages/LoginTest";
-import AdminAccessTokens from "./pages/AdminAccessTokens";
 import AdminBolsistas from "./pages/AdminBolsistas";
 
 function Router() {
@@ -31,8 +29,6 @@ function Router() {
       <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : Home} />
       <Route path={"/app"} component={TutoriaManagerIntegrated} />
       <Route path={"/dashboard"} component={PublicDashboard} />
-      <Route path={"/login-test"} component={LoginTest} />
-      <Route path={"/admin/tokens"} component={AdminAccessTokens} />
       <Route path={"/admin/bolsistas"} component={AdminBolsistas} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
