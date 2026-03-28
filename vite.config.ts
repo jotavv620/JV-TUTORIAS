@@ -187,10 +187,12 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    hmr: process.env.VITE_HMR_HOST ? {
+    hmr: {
       protocol: "wss",
-      host: process.env.VITE_HMR_HOST,
-      port: process.env.VITE_HMR_PORT ? parseInt(process.env.VITE_HMR_PORT) : 443,
-    } : false,
+      host: "localhost",
+      port: 5173,
+      timeout: 60000,
+    },
+    middlewareMode: true,
   },
 });
