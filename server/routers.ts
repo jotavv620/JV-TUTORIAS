@@ -18,7 +18,7 @@ import {
 import { parseCSV, ParseError } from "./_core/csvParser";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
-import { users } from "../drizzle/schema";
+import { users, bolsistas } from "../drizzle/schema";
 import { generateAuthorizationUrl, exchangeCodeForTokens, revokeAccessToken } from "./_core/googleOAuthService";
 import crypto from 'crypto';
 import { accessTokens } from "../drizzle/schema";
@@ -717,7 +717,7 @@ export const appRouter = router({
           const accessCode = `BOLSA-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
           // Create bolsista record
-          const result = await database.insert(require('../drizzle/schema').bolsistas).values({
+          const result = await database.insert(bolsistas).values({
             nome: input.nome,
             email: input.email || null,
             accessCode,
@@ -753,7 +753,6 @@ export const appRouter = router({
           const database = await db.getDb();
           if (!database) throw new Error('Banco de dados não disponível');
 
-          const { bolsistas } = require('../drizzle/schema');
           const result = await database.select().from(bolsistas);
           return result;
         } catch (error: any) {
@@ -776,7 +775,6 @@ export const appRouter = router({
           const database = await db.getDb();
           if (!database) throw new Error('Banco de dados não disponível');
 
-          const { bolsistas } = require('../drizzle/schema');
           await database.update(bolsistas)
             .set({ isActive: false })
             .where(eq(bolsistas.id, input.bolsistaId));
@@ -804,7 +802,6 @@ export const appRouter = router({
           const database = await db.getDb();
           if (!database) throw new Error('Banco de dados não disponível');
 
-          const { bolsistas } = require('../drizzle/schema');
           await database.delete(bolsistas).where(eq(bolsistas.id, input.bolsistaId));
 
           console.log('[Bolsista] Deleted:', { bolsistaId: input.bolsistaId });
@@ -828,8 +825,6 @@ export const appRouter = router({
           const database = await db.getDb();
           if (!database) throw new Error('Banco de dados não disponível');
 
-          const { bolsistas } = require('../drizzle/schema');
-          
           // Find bolsista by access code
           const result = await database.select().from(bolsistas)
             .where(eq(bolsistas.accessCode, input.accessCode))
@@ -848,7 +843,6 @@ export const appRouter = router({
 
           // If bolsista already has a user, use existing user
           if (bolsista.userId) {
-            const { users } = require('../drizzle/schema');
             const userResult = await database.select().from(users)
               .where(eq(users.id, bolsista.userId))
               .limit(1);
@@ -881,7 +875,6 @@ export const appRouter = router({
 
           // Create new user for bolsista
           const openId = crypto.randomBytes(16).toString('hex');
-          const { users } = require('../drizzle/schema');
           
           const newUserResult = await database.insert(users).values({
             openId,
