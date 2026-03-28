@@ -8,6 +8,7 @@ import TutoriaManagerIntegrated from "./pages/TutoriaManagerIntegrated";
 import PublicDashboard from "./pages/PublicDashboard";
 import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
 import Home from "./pages/Home";
+import AdminAccessTokens from "./pages/AdminAccessTokens";
 
 function Router() {
   const { isAuthenticated, loading } = useCustomAuth();
@@ -28,6 +29,7 @@ function Router() {
       <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : Home} />
       <Route path={"/app"} component={TutoriaManagerIntegrated} />
       <Route path={"/dashboard"} component={PublicDashboard} />
+      <Route path={"/admin/tokens"} component={AdminAccessTokens} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
