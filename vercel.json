@@ -3,7 +3,6 @@
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install --frozen-lockfile",
-
   "functions": {
     "api/**": {
       "maxDuration": 30,
@@ -11,18 +10,6 @@
     }
   },
   "rewrites": [
-    {
-      "source": "/api/trpc/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/oauth/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/health",
-      "destination": "/api"
-    },
     {
       "source": "/api/:path*",
       "destination": "/api"
