@@ -26,7 +26,21 @@ import { accessTokens } from "../drizzle/schema";
 export const appRouter = router({
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      const user = opts.ctx.user;
+      if (!user) return null;
+      // Return only primitive fields to avoid Date serialization issues
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        openId: user.openId,
+        role: user.role,
+        userType: user.userType,
+        loginMethod: user.loginMethod,
+        registeredLocally: user.registeredLocally,
+      };
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
