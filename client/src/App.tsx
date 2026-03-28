@@ -10,6 +10,7 @@ import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
 import Home from "./pages/Home";
 import LoginTest from "./pages/LoginTest";
 import AdminAccessTokens from "./pages/AdminAccessTokens";
+import AdminBolsistas from "./pages/AdminBolsistas";
 
 function Router() {
   const { isAuthenticated, loading } = useCustomAuth();
@@ -32,6 +33,7 @@ function Router() {
       <Route path={"/dashboard"} component={PublicDashboard} />
       <Route path={"/login-test"} component={LoginTest} />
       <Route path={"/admin/tokens"} component={AdminAccessTokens} />
+      <Route path={"/admin/bolsistas"} component={AdminBolsistas} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

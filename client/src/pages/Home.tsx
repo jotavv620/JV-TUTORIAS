@@ -1,19 +1,22 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
-import { Key } from 'lucide-react';
+import { Key, Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const [accessToken, setAccessToken] = useState('');
+  const [accessCode, setAccessCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Login with access token mutation
-  const loginWithTokenMutation = trpc.auth.loginWithToken.useMutation({
+  // Login by access code mutation
+  const loginMutation = trpc.login.byAccessCode.useMutation({
     onSuccess: () => {
       toast.success('Acesso concedido! Bem-vindo!');
-      setAccessToken('');
+      setAccessCode('');
       setIsLoading(false);
-      window.location.href = '/';
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Código de acesso inválido');
@@ -21,15 +24,15 @@ export default function Home() {
     },
   });
 
-  const handleLoginWithToken = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) {
+    if (!accessCode.trim()) {
       toast.error('Insira o código de acesso');
       return;
     }
     setIsLoading(true);
-    await loginWithTokenMutation.mutateAsync({
-      token: accessToken,
+    await loginMutation.mutateAsync({
+      accessCode: accessCode.trim(),
     });
   };
 
@@ -47,8 +50,8 @@ export default function Home() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100">
-          {/* Token Login Form */}
-          <form onSubmit={handleLoginWithToken} className="space-y-4">
+          {/* Access Code Login Form */}
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Código de Acesso
@@ -57,11 +60,12 @@ export default function Home() {
                 <Key className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input
                   type="text"
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value)}
                   placeholder="Cole seu código aqui"
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono"
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono text-sm"
                   disabled={isLoading}
+                  autoComplete="off"
                 />
               </div>
               <p className="text-xs text-slate-500 mt-1">Código fornecido pelo administrador</p>
@@ -74,13 +78,13 @@ export default function Home() {
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Processando...
                 </>
               ) : (
                 <>
                   <Key className="w-4 h-4" />
-                  Acessar com Código
+                  Acessar
                 </>
               )}
             </button>

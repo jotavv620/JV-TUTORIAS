@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE bolsistas \nADD COLUMN accessCode VARCHAR(50) NOT NULL UNIQUE,\nADD COLUMN isActive BOOLEAN NOT NULL DEFAULT true,\nADD COLUMN usedAt TIMESTAMP NULL,\nADD COLUMN updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\nMODIFY userId INT NULL,\nMODIFY email VARCHAR(320) NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute ALTER TABLE bolsistas \nADD COLUMN accessCode VARCHAR(50) NOT NULL UNIQUE,\nADD COLUMN isActive BOOLEAN NOT NULL DEFAULT true,\nADD COLUMN usedAt TIMESTAMP NULL,\nADD COLUMN updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\nMODIFY userId INT NULL,\nMODIFY email VARCHAR(320) NULL;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8200 (HY000) at line 1: unsupported add column 'accesscode' constraint UNIQUE KEY when altering '6856TeX4yea3eYHoBQTyWM.bolsistas'"
+  ]
+}

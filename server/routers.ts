@@ -807,5 +807,245 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // Bolsistas router - for managing bolsista access codes
+  bolsistas: router({
+    create: protectedProcedure
+      .input(z.object({
+        nome: z.string().min(2),
+        email: z.string().email().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admins can create bolsistas
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Apenas administradores podem criar bolsistas');
+        }
+
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error('Banco de dados não disponível');
+
+          // Generate unique access code
+          const accessCode = `BOLSA-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+          // Create bolsista record
+          const result = await database.insert(require('../drizzle/schema').bolsistas).values({
+            nome: input.nome,
+            email: input.email || null,
+            accessCode,
+            isActive: true,
+          });
+
+          const bolsistaId = (result as any)[0]?.insertId || (result as any).insertId;
+
+          console.log('[Bolsista] Created:', { bolsistaId, nome: input.nome, accessCode });
+
+          return {
+            id: bolsistaId,
+            nome: input.nome,
+            email: input.email || null,
+            accessCode,
+            isActive: true,
+            createdAt: new Date(),
+          };
+        } catch (error: any) {
+          console.error('[Bolsista] Error creating bolsista:', error);
+          throw new Error(error.message || 'Erro ao criar bolsista');
+        }
+      }),
+
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        // Only admins can list bolsistas
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Apenas administradores podem listar bolsistas');
+        }
+
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error('Banco de dados não disponível');
+
+          const { bolsistas } = require('../drizzle/schema');
+          const result = await database.select().from(bolsistas);
+          return result;
+        } catch (error: any) {
+          console.error('[Bolsista] Error listing bolsistas:', error);
+          throw new Error(error.message || 'Erro ao listar bolsistas');
+        }
+      }),
+
+    deactivate: protectedProcedure
+      .input(z.object({
+        bolsistaId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admins can deactivate bolsistas
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Apenas administradores podem desativar bolsistas');
+        }
+
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error('Banco de dados não disponível');
+
+          const { bolsistas } = require('../drizzle/schema');
+          await database.update(bolsistas)
+            .set({ isActive: false })
+            .where(eq(bolsistas.id, input.bolsistaId));
+
+          console.log('[Bolsista] Deactivated:', { bolsistaId: input.bolsistaId });
+
+          return { success: true };
+        } catch (error: any) {
+          console.error('[Bolsista] Error deactivating bolsista:', error);
+          throw new Error(error.message || 'Erro ao desativar bolsista');
+        }
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({
+        bolsistaId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admins can delete bolsistas
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Apenas administradores podem deletar bolsistas');
+        }
+
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error('Banco de dados não disponível');
+
+          const { bolsistas } = require('../drizzle/schema');
+          await database.delete(bolsistas).where(eq(bolsistas.id, input.bolsistaId));
+
+          console.log('[Bolsista] Deleted:', { bolsistaId: input.bolsistaId });
+
+          return { success: true };
+        } catch (error: any) {
+          console.error('[Bolsista] Error deleting bolsista:', error);
+          throw new Error(error.message || 'Erro ao deletar bolsista');
+        }
+      }),
+  }),
+
+  // Login by access code
+  login: router({
+    byAccessCode: publicProcedure
+      .input(z.object({
+        accessCode: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const database = await db.getDb();
+          if (!database) throw new Error('Banco de dados não disponível');
+
+          const { bolsistas } = require('../drizzle/schema');
+          
+          // Find bolsista by access code
+          const result = await database.select().from(bolsistas)
+            .where(eq(bolsistas.accessCode, input.accessCode))
+            .limit(1);
+
+          if (result.length === 0) {
+            throw new Error('Código de acesso inválido');
+          }
+
+          const bolsista = result[0];
+
+          // Check if bolsista is active
+          if (!bolsista.isActive) {
+            throw new Error('Este código de acesso foi desativado');
+          }
+
+          // If bolsista already has a user, use existing user
+          if (bolsista.userId) {
+            const { users } = require('../drizzle/schema');
+            const userResult = await database.select().from(users)
+              .where(eq(users.id, bolsista.userId))
+              .limit(1);
+
+            if (userResult.length === 0) {
+              throw new Error('Usuário não encontrado');
+            }
+
+            // Mark as used
+            await database.update(bolsistas)
+              .set({ usedAt: new Date() })
+              .where(eq(bolsistas.id, bolsista.id));
+
+            const user = userResult[0];
+
+            // Create session
+            const { sdk } = await import('./_core/sdk');
+            const sessionToken = await sdk.createSessionToken(user.openId, {
+              name: user.name || '',
+              expiresInMs: 365 * 24 * 60 * 60 * 1000,
+            });
+
+            const cookieOptions = getSessionCookieOptions(ctx.req);
+            ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: 365 * 24 * 60 * 60 * 1000 });
+
+            console.log('[Login] Bolsista logged in (existing user):', { userId: user.id, bolsistaId: bolsista.id });
+
+            return { success: true, message: 'Acesso concedido' };
+          }
+
+          // Create new user for bolsista
+          const openId = crypto.randomBytes(16).toString('hex');
+          const { users } = require('../drizzle/schema');
+          
+          const newUserResult = await database.insert(users).values({
+            openId,
+            name: bolsista.nome,
+            userType: 'bolsista',
+            registeredLocally: true,
+            role: 'user',
+          });
+
+          const newUserId = (newUserResult as any)[0]?.insertId || (newUserResult as any).insertId;
+
+          if (!newUserId || typeof newUserId !== 'number') {
+            throw new Error('Erro ao criar usuário');
+          }
+
+          // Link bolsista to user
+          await database.update(bolsistas)
+            .set({
+              userId: newUserId,
+              usedAt: new Date(),
+            })
+            .where(eq(bolsistas.id, bolsista.id));
+
+          // Get created user
+          const createdUserResult = await database.select().from(users)
+            .where(eq(users.openId, openId))
+            .limit(1);
+
+          if (createdUserResult.length === 0) {
+            throw new Error('Erro ao recuperar usuário criado');
+          }
+
+          const user = createdUserResult[0];
+
+          // Create session
+          const { sdk } = await import('./_core/sdk');
+          const sessionToken = await sdk.createSessionToken(user.openId, {
+            name: user.name || '',
+            expiresInMs: 365 * 24 * 60 * 60 * 1000,
+          });
+
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: 365 * 24 * 60 * 60 * 1000 });
+
+          console.log('[Login] Bolsista logged in (new user):', { userId: newUserId, bolsistaId: bolsista.id });
+
+          return { success: true, message: 'Acesso concedido' };
+        } catch (error: any) {
+          console.error('[Login] Error logging in by access code:', error);
+          throw new Error(error.message || 'Erro ao fazer login');
+        }
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

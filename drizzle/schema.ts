@@ -109,10 +109,14 @@ export const instituicoes = mysqlTable("instituicoes", {
 // Bolsistas table
 export const bolsistas = mysqlTable("bolsistas", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: int("userId").references(() => users.id, { onDelete: "cascade" }),
   nome: varchar("nome", { length: 255 }).notNull(),
-  email: varchar("email", { length: 320 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  accessCode: varchar("accessCode", { length: 50 }).notNull().unique(), // Código único para login
+  isActive: boolean("isActive").default(true).notNull(),
+  usedAt: timestamp("usedAt"), // Quando o código foi usado para fazer login
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Bolsista = typeof bolsistas.$inferSelect;
