@@ -22,13 +22,19 @@ export default function Home() {
 
   // Login by access code mutation - MOVED TO TOP
   const loginMutation = trpc.login.byAccessCode.useMutation({
-    onSuccess: () => {
-      toast.success('Acesso concedido! Bem-vindo!');
+    onSuccess: async () => {
+      toast.success('Acesso concedido! Bem-vindo!', {
+        description: 'Redirecionando para o aplicativo...',
+        duration: 2000,
+      });
       setAccessCode('');
-      setIsLoading(false);
-      // Invalidate auth cache to trigger re-render
+      // Invalidate auth cache to trigger re-render and redirect
       const utils = trpc.useUtils();
-      utils.auth.me.invalidate();
+      await utils.auth.me.invalidate();
+      // Small delay to ensure Router re-renders with new auth state
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Código de acesso inválido');
