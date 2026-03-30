@@ -20,38 +20,24 @@ export function useCustomAuth(options?: UseAuthOptions) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   } as any);
 
-  // Set timeout for auth check (3 seconds - aggressive)
+  // Set timeout for auth check (5 seconds)
   useEffect(() => {
     const timer = setTimeout(() => {
-      console.warn('[Auth] Timeout: auth.me took too long, falling back to unauthenticated');
-      setHasTimedOut(true);
-      setIsLoading(false);
-    }, 3000);
+      if (meQuery.isLoading) {
+        setHasTimedOut(true);
+        setIsLoading(false);
+      }
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [meQuery.isLoading]);
 
-  // Fallback: if still loading after 10 seconds, force stop
-  useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
-      if (isLoading) {
-        console.error('[Auth] Critical timeout: forcing auth check to stop');
-        setIsLoading(false);
-        setHasTimedOut(true);
-      }
-    }, 10000);
-
-    return () => clearTimeout(fallbackTimer);
-  }, [isLoading]);
-
   useEffect(() => {
     if (!meQuery.isLoading) {
       setIsLoading(false);
-      if (!meQuery.error) {
-        setHasTimedOut(false);
-      }
+      setHasTimedOut(false);
     }
-  }, [meQuery.isLoading, meQuery.error]);
+  }, [meQuery.isLoading]);
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -79,11 +65,9 @@ export function useCustomAuth(options?: UseAuthOptions) {
         JSON.stringify(meQuery.data)
       );
     }
-    // If timeout occurred, treat as unauthenticated (not loading)
-    const shouldShowLoading = (isLoading && !hasTimedOut) && meQuery.isLoading;
     return {
       user: meQuery.data ?? null,
-      loading: shouldShowLoading,
+      loading: (isLoading && !hasTimedOut) || meQuery.isLoading,
       error: meQuery.error ?? logoutMutation.error ?? null,
       isAuthenticated: Boolean(meQuery.data),
     };
