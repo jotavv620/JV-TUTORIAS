@@ -371,3 +371,46 @@
 - [ ] Criar mutation importFromCSV
 - [ ] Retornar relatório de sucesso/erro
 - [ ] Testar importação de múltiplos registros
+
+
+## RECONSTRUÇÃO COMPLETA DO APP - EM PROGRESSO
+
+### FASE 1: Corrigir Erro de DOM
+- [ ] Corrigir erro NotFoundError insertBefore no Vercel
+- [ ] Restaurar routers backend completos
+- [ ] Verificar schema do banco de dados
+
+### FASE 2: Dashboard com 4 Abas
+- [ ] Aba 1: Dashboard (estatísticas e painel de atividades)
+- [ ] Aba 2: Calendário (agendamento de tutorias)
+- [ ] Aba 3: Gamificação (pontos, badges, ranking)
+- [ ] Aba 4: Configuração (Professores, Disciplinas, Bolsistas, Instituições)
+
+### FASE 3: Calendário & Agendamento
+- [ ] Componente de calendário interativo
+- [ ] Agendamento de tutorias
+- [ ] Visualização de tutorias por data
+- [ ] Edição e cancelamento de tutorias
+
+### FASE 4: Gamificação
+- [ ] Sistema de pontos
+- [ ] Badges e conquistas
+- [ ] Ranking de bolsistas
+- [ ] Histórico de pontos
+
+### FASE 5: Configuração
+- [ ] CRUD de Professores
+- [ ] CRUD de Disciplinas
+- [ ] CRUD de Bolsistas
+- [ ] CRUD de Instituições
+- [ ] Importação de CSV
+
+### FASE 6: Check-in & Feedback
+- [ ] Check-in de tutorias
+- [ ] Feedback com pontuação
+- [ ] Histórico de check-ins
+
+### FASE 7: Deploy & Testes
+- [ ] Testar no Vercel
+- [ ] Corrigir bugs encontrados
+- [ ] Deploy final
