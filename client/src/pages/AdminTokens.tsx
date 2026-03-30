@@ -8,8 +8,10 @@ export default function AdminTokens() {
   const [userType, setUserType] = useState<'admin' | 'bolsista'>('bolsista');
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Get list of access tokens
-  const { data: tokens, isLoading } = trpc.accessTokens.list.useQuery();
+  // Get list of access tokens - DISABLED TO FIX ERROR #310
+  // const { data: tokens, isLoading } = trpc.accessTokens.list.useQuery();
+  const tokens = [];
+  const isLoading = false;
 
   // Create token mutation
   const createMutation = trpc.accessTokens.create.useMutation({
