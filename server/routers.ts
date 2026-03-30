@@ -153,10 +153,9 @@ export const appRouter = router({
 
           const accessToken = tokenResult[0];
 
-          // Token revocation check removed - not in schema
-          // if (accessToken.revokedAt) {
-          //   throw new Error('Token foi revogado');
-          // }
+          if (accessToken.revokedAt) {
+            throw new Error('Token foi revogado');
+          }
 
           if (accessToken.expiresAt && new Date(accessToken.expiresAt) < new Date()) {
             throw new Error('Token expirou');
