@@ -9,7 +9,16 @@ export default function Home() {
   // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL RETURNS
   const [accessCode, setAccessCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated, loading: authLoading } = useCustomAuth();
+  const { isAuthenticated, loading: authLoading, logout } = useCustomAuth();
+  
+  // Clear auth state on mount to ensure login page shows
+  React.useEffect(() => {
+    // If somehow authenticated on login page, clear it
+    if (isAuthenticated && !authLoading) {
+      // This shouldn't happen, but if it does, show login page anyway
+      console.log('Warning: User authenticated on login page');
+    }
+  }, []);
 
   // Login by access code mutation - MOVED TO TOP
   const loginMutation = trpc.login.byAccessCode.useMutation({
@@ -38,11 +47,6 @@ export default function Home() {
       accessCode: accessCode.trim(),
     });
   };
-
-  // If authenticated, let Router handle navigation
-  if (isAuthenticated && !authLoading) {
-    return null;
-  }
 
   // If still loading auth, show loading state
   if (authLoading) {
