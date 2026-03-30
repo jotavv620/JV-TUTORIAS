@@ -411,7 +411,20 @@ export const appRouter = router({
   // Tutorias router
   tutorias: router({
     list: protectedProcedure.query(async () => {
-      return await db.getAllTutorias();
+      const tutorias = await db.getAllTutorias();
+      // Map to remove Date fields
+      return tutorias.map(t => ({
+        id: t.id,
+        userId: t.userId,
+        professorId: t.professorId,
+        disciplina: t.disciplina,
+        instituicao: t.instituicao,
+        status: t.status,
+        dataHora: t.dataHora ? new Date(t.dataHora).toISOString() : null,
+        duracao: t.duracao,
+        local: t.local,
+        notas: t.notas,
+      }));
     }),
     
     create: protectedProcedure
@@ -540,7 +553,14 @@ export const appRouter = router({
         tutoriaId: z.number(),
       }))
       .query(async ({ input }) => {
-        return await db.getFeedbackByTutoriaId(input.tutoriaId);
+        const feedbacks = await db.getFeedbackByTutoriaId(input.tutoriaId);
+        // Map to remove Date fields
+        return feedbacks.map(f => ({
+          id: f.id,
+          tutoriaId: f.tutoriaId,
+          rating: f.rating,
+          comment: f.comment,
+        }));
       }),
   }),
 
@@ -566,7 +586,13 @@ export const appRouter = router({
         tutoriaId: z.number(),
       }))
       .query(async ({ input }) => {
-        return await db.getCheckinByTutoriaId(input.tutoriaId);
+        const checkins = await db.getCheckinByTutoriaId(input.tutoriaId);
+        // Map to remove Date fields
+        return checkins.map(c => ({
+          id: c.id,
+          tutoriaId: c.tutoriaId,
+          checkInTime: c.checkInTime ? new Date(c.checkInTime).toISOString() : null,
+        }));
       }),
   }),
 
@@ -655,7 +681,16 @@ export const appRouter = router({
   // Bolsistas router
   bolsista: router({
     list: protectedProcedure.query(async () => {
-      return await db.getAllBolsistas();
+      const bolsistas = await db.getAllBolsistas();
+      // Map to remove Date fields
+      return bolsistas.map(b => ({
+        id: b.id,
+        userId: b.userId,
+        nome: b.nome,
+        email: b.email,
+        accessCode: b.accessCode,
+        isActive: b.isActive,
+      }));
     }),
     
     create: protectedProcedure
