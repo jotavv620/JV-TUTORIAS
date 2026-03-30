@@ -49,10 +49,13 @@ export default function Home() {
       return;
     }
     setIsLoading(true);
-    await loginMutation.mutateAsync({
-      accessCode: accessCode.trim(),
-    });
-  };
+    try {
+      await loginMutation.mutateAsync({ accessCode: accessCode.trim() });
+    } catch (error) {
+      console.error('Login error:', error);
+      setIsLoading(false);
+    }
+  }
 
   // If still loading auth, show loading state
   if (authLoading) {
