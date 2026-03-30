@@ -403,11 +403,27 @@ export async function createBolsista(userId: number, nome: string, email: string
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  return await db.insert(bolsistas).values({
+  // Generate unique access code
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 10).toUpperCase();
+  const accessCode = `BOLSA-${timestamp}-${random}`;
+  
+  const result = await db.insert(bolsistas).values({
     userId,
     nome,
     email,
+    accessCode,
+    isActive: true,
   });
+  
+  // Return the created bolsista with access code
+  const insertedId = (result as any)[0]?.insertId || (result as any).insertId;
+  if (insertedId) {
+    const created = await db.select().from(bolsistas).where(eq(bolsistas.id, insertedId)).limit(1);
+    return created[0] || { accessCode };
+  }
+  
+  return { accessCode };
 }
 
 export async function getBolsistasByUserId(userId: number) {
