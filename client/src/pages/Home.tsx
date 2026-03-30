@@ -17,10 +17,9 @@ export default function Home() {
       toast.success('Acesso concedido! Bem-vindo!');
       setAccessCode('');
       setIsLoading(false);
-      // Redirect to dashboard after a short delay
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 500);
+      // Invalidate auth cache to trigger re-render
+      const utils = trpc.useUtils();
+      utils.auth.me.invalidate();
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Código de acesso inválido');
@@ -40,9 +39,9 @@ export default function Home() {
     });
   };
 
-  // If authenticated, show dashboard
+  // If authenticated, let Router handle navigation
   if (isAuthenticated && !authLoading) {
-    return <TutoriaManagerIntegrated />;
+    return null;
   }
 
   // If still loading auth, show loading state
