@@ -133,6 +133,77 @@ export function createProfessorEmailTemplate(data: TutoriaEmailData): string {
 }
 
 /**
+ * Creates HTML email template for bolsista access code
+ */
+export function createBolsistaAccessCodeTemplate(nome: string, accessCode: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #ff8c00; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+          .content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+          .code-box { background-color: #fff; border: 2px solid #ff8c00; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0; }
+          .code { font-family: monospace; font-size: 18px; font-weight: bold; color: #ff8c00; word-break: break-all; }
+          .label { font-weight: bold; color: #ff8c00; }
+          .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+          .warning { background-color: #fff3cd; padding: 10px; border-radius: 5px; margin: 15px 0; color: #856404; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Bem-vindo ao Tutoria Manager!</h1>
+          </div>
+          
+          <div class="content">
+            <p>Olá <strong>${nome}</strong>,</p>
+            
+            <p>Você foi cadastrado como bolsista no sistema Tutoria Manager. Abaixo está seu código de acesso único:</p>
+            
+            <div class="code-box">
+              <p style="margin: 0 0 10px 0; color: #666; font-size: 12px;">Seu Código de Acesso:</p>
+              <div class="code">${accessCode}</div>
+            </div>
+            
+            <div class="warning">
+              <strong>⚠️ Importante:</strong> Este código é pessoal e intransferível. Não o compartilhe com ninguém.
+            </div>
+            
+            <p><strong>Como fazer login:</strong></p>
+            <ol>
+              <li>Acesse o sistema Tutoria Manager</li>
+              <li>Cole o código acima no campo "Código de Acesso"</li>
+              <li>Clique em "Acessar"</li>
+            </ol>
+            
+            <p style="margin-top: 30px;">Se tiver dúvidas, entre em contato com o administrador do sistema.</p>
+          </div>
+          
+          <div class="footer">
+            <p>Sistema de Gerenciamento de Tutorias</p>
+            <p>Não responda este email</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+export async function sendBolsistaAccessCodeEmail(email: string, nome: string, accessCode: string): Promise<boolean> {
+  const html = createBolsistaAccessCodeTemplate(nome, accessCode);
+  return sendEmail({
+    to: email,
+    subject: `Seu Código de Acesso - Tutoria Manager`,
+    html,
+    text: `Bem-vindo ao Tutoria Manager!\n\nSeu código de acesso: ${accessCode}\n\nNão compartilhe este código com ninguém.`,
+  });
+}
+
+/**
  * Creates HTML email template for bolsista notification
  */
 export function createBolsistaEmailTemplate(data: TutoriaEmailData): string {

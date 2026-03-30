@@ -9,6 +9,7 @@ import PublicDashboard from "./pages/PublicDashboard";
 import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
 import Home from "./pages/Home";
 import AdminBolsistas from "./pages/AdminBolsistas";
+import AdminTokens from "./pages/AdminTokens";
 import LoginTest from "./pages/LoginTest";
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
       <Route path={"/app"} component={TutoriaManagerIntegrated} />
       <Route path={"/dashboard"} component={PublicDashboard} />
       <Route path={"/admin/bolsistas"} component={AdminBolsistas} />
+      <Route path={"/admin/tokens"} component={AdminTokens} />
       <Route path={"/login-test"} component={LoginTest} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

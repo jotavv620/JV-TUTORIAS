@@ -13,6 +13,7 @@ import {
 import {
   sendProfessorTutoriaEmail,
   sendBolsistaTutoriaEmail,
+  sendBolsistaAccessCodeEmail,
   TutoriaEmailData,
 } from "./_core/emailService";
 import { parseCSV, ParseError } from "./_core/csvParser";
@@ -664,6 +665,12 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const result = await db.createBolsista(ctx.user.id, input.nome, input.email);
+        
+        // Send email with access code
+        if (result && result.accessCode) {
+          await sendBolsistaAccessCodeEmail(input.email, input.nome, result.accessCode);
+        }
+        
         broadcastConfigUpdate({ type: 'bolsista', action: 'created', data: result });
         return result;
       }),
