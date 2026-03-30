@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { Key, Loader2 } from 'lucide-react';
@@ -12,7 +12,7 @@ export default function Home() {
   const { isAuthenticated, loading: authLoading, logout } = useCustomAuth();
   
   // Clear auth state on mount to ensure login page shows
-  React.useEffect(() => {
+  useEffect(() => {
     // If somehow authenticated on login page, clear it
     if (isAuthenticated && !authLoading) {
       // This shouldn't happen, but if it does, show login page anyway
