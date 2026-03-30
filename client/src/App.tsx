@@ -4,13 +4,11 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import TutoriaManagerIntegrated from "./pages/TutoriaManagerIntegrated";
+import Dashboard from "./pages/Dashboard";
 import PublicDashboard from "./pages/PublicDashboard";
 import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
 import Home from "./pages/Home";
-import AdminBolsistas from "./pages/AdminBolsistas";
-import AdminTokens from "./pages/AdminTokens";
-import LoginTest from "./pages/LoginTest";
+// Removed unused admin pages
 
 function Router() {
   const { isAuthenticated, loading } = useCustomAuth();
@@ -28,12 +26,9 @@ function Router() {
 
   return (
     <Switch>
-      <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : Home} />
-      <Route path={"/app"} component={TutoriaManagerIntegrated} />
+      <Route path={"/"} component={isAuthenticated ? Dashboard : Home} />
+      <Route path={"/app"} component={Dashboard} />
       <Route path={"/dashboard"} component={PublicDashboard} />
-      <Route path={"/admin/bolsistas"} component={AdminBolsistas} />
-      <Route path={"/admin/tokens"} component={AdminTokens} />
-      <Route path={"/login-test"} component={LoginTest} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -3,7 +3,7 @@ import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { Key, Loader2 } from 'lucide-react';
 import { useCustomAuth } from '@/_core/hooks/useCustomAuth';
-import TutoriaManagerIntegrated from './TutoriaManagerIntegrated';
+// Removed import of deleted component
 
 export default function Home() {
   // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL RETURNS
