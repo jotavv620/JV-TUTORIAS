@@ -12,7 +12,7 @@ export default function AdminTokens() {
   const { data: tokens, isLoading } = trpc.accessTokens.list.useQuery();
 
   // Create token mutation
-  const createMutation = trpc.accessTokens.create.useMutation({
+  const createMutation = trpc.accessTokens.generate.useMutation({
     onSuccess: (newToken) => {
       toast.success('Token criado com sucesso!');
       setShowForm(false);
