@@ -249,24 +249,9 @@ export default function TutoriaManagerIntegrated() {
     }
   };
 
-  const syncGoogleCalendarMutation = trpc.tutorias.syncGoogleCalendar?.useMutation({
-    onSuccess: () => {
-      refetchTutorias();
-      toast.success('Tutoria sincronizada com Google Calendar!');
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'Erro ao sincronizar com Google Calendar');
-    },
-  });
-
+  // Google Calendar sync is not implemented yet
   const handleSyncGoogleCalendar = async (tutoriaId: number) => {
-    try {
-      if (syncGoogleCalendarMutation) {
-        await syncGoogleCalendarMutation.mutateAsync({ tutoriaId });
-      }
-    } catch (error: any) {
-      console.error('Erro ao sincronizar:', error);
-    }
+    toast.info('Sincronização com Google Calendar em breve!');
   };
 
   const handleAddItem = async (type: string, value: string, email?: string) => {
