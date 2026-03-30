@@ -6,28 +6,12 @@ import { useCustomAuth } from '@/_core/hooks/useCustomAuth';
 import TutoriaManagerIntegrated from './TutoriaManagerIntegrated';
 
 export default function Home() {
+  // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY CONDITIONAL RETURNS
   const [accessCode, setAccessCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { isAuthenticated, loading: authLoading } = useCustomAuth();
 
-  // If authenticated, show dashboard
-  if (isAuthenticated && !authLoading) {
-    return <TutoriaManagerIntegrated />;
-  }
-
-  // If still loading auth, show loading state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-slate-600 font-bold">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Login by access code mutation
+  // Login by access code mutation - MOVED TO TOP
   const loginMutation = trpc.login.byAccessCode.useMutation({
     onSuccess: () => {
       toast.success('Acesso concedido! Bem-vindo!');
@@ -55,6 +39,23 @@ export default function Home() {
       accessCode: accessCode.trim(),
     });
   };
+
+  // If authenticated, show dashboard
+  if (isAuthenticated && !authLoading) {
+    return <TutoriaManagerIntegrated />;
+  }
+
+  // If still loading auth, show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-blue-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-bold">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show login form when not authenticated
   return (
