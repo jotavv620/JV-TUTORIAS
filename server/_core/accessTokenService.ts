@@ -90,17 +90,30 @@ export async function loginWithAccessToken(token: string) {
   }
 
   // Create new user from token
-  const newUserResult = await db.insert(users).values({
+  const uniqueOpenId = `token_${accessToken.id}_${Date.now()}`;
+  
+  await db.insert(users).values({
     name: accessToken.name,
     email: `user_${accessToken.id}@tutoria-manager.local`,
-    openId: `token_${accessToken.id}_${Date.now()}`,
+    openId: uniqueOpenId,
     loginMethod: 'token',
     userType: accessToken.userType,
     registeredLocally: true,
     role: accessToken.userType === 'admin' ? 'admin' : 'user',
   });
 
-  const newUserId = (newUserResult as any).insertId;
+  // Get the newly created user by openId
+  const createdUserByOpenId = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, uniqueOpenId))
+    .limit(1);
+
+  if (createdUserByOpenId.length === 0) {
+    throw new Error('Failed to retrieve created user');
+  }
+
+  const newUserId = createdUserByOpenId[0].id;
 
   // Link token to user and mark as used
   await db
