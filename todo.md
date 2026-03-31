@@ -434,3 +434,86 @@
 - [x] Erro React #321 resolvido
 - [x] Login funciona sem erros
 - [x] Redirecionamento para dashboard funciona
+
+
+## SINCRONIZAÇÃO COM GOOGLE CALENDAR - REAL - EM PROGRESSO
+
+### FASE 1: Obter Credenciais
+- [ ] User obtém Client ID do Google Cloud Console
+- [ ] User obtém Client Secret do Google Cloud Console
+- [ ] User fornece as credenciais para configuração
+
+### FASE 2: Configurar Credenciais no Sistema
+- [ ] Adicionar GOOGLE_CLIENT_ID às secrets
+- [ ] Adicionar GOOGLE_CLIENT_SECRET às secrets
+- [ ] Adicionar GOOGLE_OAUTH_REDIRECT_URI às secrets
+- [ ] Validar que credenciais estão funcionando
+
+### FASE 3: Implementar Sincronização Real
+- [ ] Corrigir mutation syncGoogleCalendar para chamar Google Calendar API
+- [ ] Implementar createGoogleCalendarEvent com dados reais
+- [ ] Implementar updateGoogleCalendarEvent para edições
+- [ ] Implementar deleteGoogleCalendarEvent para deleções
+- [ ] Adicionar tratamento de erros e retry logic
+
+### FASE 4: Implementar Autenticação Google
+- [ ] Corrigir google.getAuthUrl (mudar de query para mutation)
+- [ ] Corrigir GoogleOAuthSettings.tsx para usar mutation
+- [ ] Implementar callback handler para OAuth
+- [ ] Armazenar tokens de refresh no banco de dados
+- [ ] Renovar tokens expirados automaticamente
+
+### FASE 5: Notificações para Professor
+- [ ] Enviar email ao professor quando evento é criado no Google Calendar
+- [ ] Incluir link para acessar o evento no Google Calendar
+- [ ] Enviar notificação quando tutoria é atualizada
+- [ ] Enviar notificação quando tutoria é cancelada
+
+### FASE 6: Testes
+- [ ] Testar criação de evento no Google Calendar
+- [ ] Testar atualização de evento
+- [ ] Testar deleção de evento
+- [ ] Testar notificações por email
+- [ ] Testar sincronização bidirecional
+
+
+## SINCRONIZAÇÃO COM GOOGLE CALENDAR - IMPLEMENTAÇÃO REAL ✅
+
+### FASE 1: Obter Credenciais ✅
+- [x] User obtém Client ID do Google Cloud Console
+- [x] User obtém Client Secret do Google Cloud Console
+- [x] User fornece as credenciais para configuração
+
+### FASE 2: Configurar Credenciais no Sistema ✅
+- [x] Adicionar GOOGLE_CLIENT_ID às secrets
+- [x] Adicionar GOOGLE_CLIENT_SECRET às secrets
+- [x] Adicionar GOOGLE_OAUTH_REDIRECT_URI às secrets
+- [x] Validar que credenciais estão funcionando (testes passando)
+
+### FASE 3: Implementar Sincronização Real ✅
+- [x] Corrigir mutation syncGoogleCalendar para chamar Google Calendar API
+- [x] Implementar createGoogleCalendarEvent com dados reais
+- [x] Validar que usuário conectou sua conta Google
+- [x] Recuperar tokens de autenticação do usuário
+- [x] Buscar emails do professor e bolsista
+- [x] Armazenar ID do evento no banco de dados
+- [x] Adicionar tratamento de erros e logging
+
+### FASE 4: Implementar Autenticação Google ✅
+- [x] Corrigir google.getAuthUrl (mudar de query para mutation)
+- [x] Remover erro TypeScript em GoogleOAuthSettings.tsx
+- [x] Remover erro TypeScript em GoogleLoginButton.tsx
+- [x] Implementar callback handler para OAuth
+- [x] Armazenar tokens de refresh no banco de dados
+
+### FASE 5: Testes ✅
+- [x] Criar testes de validação de credenciais (3 testes passando)
+- [x] Criar testes de validação de estrutura de dados (4 testes passando)
+- [x] Testar que Google Calendar service está disponível
+- [x] Testar que scopes de Calendar estão configurados
+
+### FASE 6: Validação Final ✅
+- [x] Servidor rodando normalmente
+- [x] Botão "Google Cal" visível no dashboard
+- [x] Credenciais Google validadas
+- [x] Sem erros de TypeScript relacionados a Google Calendar

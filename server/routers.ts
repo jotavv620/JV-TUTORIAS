@@ -83,7 +83,7 @@ export const appRouter = router({
 
   // Google OAuth router
   google: router({
-    getAuthUrl: protectedProcedure.query(({ ctx }) => {
+    getAuthUrl: protectedProcedure.mutation(async ({ ctx }) => {
       try {
         const authUrl = generateAuthorizationUrl(ctx.user.id.toString());
         return { authUrl };
@@ -331,27 +331,74 @@ export const appRouter = router({
       .input(z.object({
         tutoriaId: z.number(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         try {
           const tutoria = await db.getTutoriaById(input.tutoriaId);
           if (!tutoria) {
             throw new Error('Tutoria não encontrada');
           }
           
-          // For now, just mark as synced
-          // In production, this would create a Google Calendar event
+          // Get user's Google credentials
+          const googleAuth = await db.getGoogleAuthToken(ctx.user.id);
+          if (!googleAuth || !googleAuth.accessToken) {
+            throw new Error('Você precisa conectar sua conta Google primeiro');
+          }
+          
+          // Get professor and bolsista emails
+          const professorData = await db.getProfessorByName(tutoria.professor);
+          const bolsistaData = await db.getBolsistaByName(tutoria.bolsista);
+          
+          if (!professorData?.email) {
+            throw new Error('Email do professor não encontrado');
+          }
+          
+          // Create Google Calendar event
+          const { createGoogleCalendarEvent } = await import('./_core/googleCalendarService');
+          const { google } = await import('googleapis');
+          
+          // Create authenticated client with user's tokens
+          const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+            process.env.GOOGLE_OAUTH_REDIRECT_URI
+          );
+          
+          oauth2Client.setCredentials({
+            access_token: googleAuth.accessToken,
+            refresh_token: googleAuth.refreshToken || undefined,
+            expiry_date: googleAuth.expiresAt?.getTime(),
+          });
+          
+          const eventId = await createGoogleCalendarEvent(oauth2Client, {
+            disciplina: tutoria.disciplina,
+            professor: tutoria.professor,
+            bolsista: tutoria.bolsista,
+            instituicao: tutoria.instituicao,
+            data: tutoria.data,
+            horario: tutoria.horario,
+            horarioTermino: tutoria.horarioTermino,
+            professorEmail: professorData?.email || undefined,
+            bolsistaEmail: bolsistaData?.email || undefined,
+          });
+          
+          if (!eventId) {
+            throw new Error('Falha ao criar evento no Google Calendar');
+          }
+          
+          // Update tutoria with Google Calendar event ID
           await db.updateTutoriaGoogleCalendarSync(
             input.tutoriaId,
-            `event_${input.tutoriaId}_${Date.now()}`,
+            eventId,
             true
           );
           
           return {
             success: true,
-            message: 'Tutoria sincronizada com Google Calendar',
-            eventId: `event_${input.tutoriaId}_${Date.now()}`,
+            message: 'Tutoria sincronizada com Google Calendar com sucesso!',
+            eventId,
           };
         } catch (error: any) {
+          console.error('[Google Calendar Sync Error]', error);
           throw new Error(error.message || 'Erro ao sincronizar com Google Calendar');
         }
       }),
