@@ -550,3 +550,72 @@
 6. [x] Usuário redireciona para `/app`
 7. [x] Botão "Google Cal" agora funciona
 8. [x] Eventos são criados no Google Calendar do professor
+
+
+## GERENCIAMENTO DE EMAILS - PROFESSORES E BOLSISTAS - EM PROGRESSO
+
+### FASE 1: Adicionar Campos de Email ao Banco de Dados
+- [ ] Adicionar coluna `email` à tabela `professors`
+- [ ] Adicionar coluna `email` à tabela `bolsistas`
+- [ ] Criar migration para adicionar campos
+- [ ] Executar migration
+
+### FASE 2: Criar UI para Gerenciar Emails
+- [ ] Criar formulário para adicionar/editar email de professor
+- [ ] Criar formulário para adicionar/editar email de bolsista
+- [ ] Adicionar validação de email
+- [ ] Adicionar botões de salvar/cancelar
+- [ ] Mostrar emails existentes
+
+### FASE 3: Integrar com Google Calendar Sync
+- [ ] Usar emails dos professores/bolsistas ao sincronizar
+- [ ] Enviar convites para o email do professor
+- [ ] Enviar convites para o email do bolsista
+- [ ] Adicionar tratamento de erro se email não existir
+
+### FASE 4: Testes
+- [ ] Testar adição de emails
+- [ ] Testar edição de emails
+- [ ] Testar sincronização com Google Calendar usando emails
+- [ ] Testar validação de email
+
+### FASE 5: Validação Final
+- [ ] Verificar que eventos são criados no calendário correto
+- [ ] Verificar que convites são enviados para os emails corretos
+- [ ] Testar fluxo completo end-to-end
+
+
+## GERENCIAMENTO DE EMAILS - PROFESSORES E BOLSISTAS ✅ COMPLETO
+
+### FASE 1: Adicionar Campos de Email ao Banco de Dados ✅
+- [x] Campos email já existem nas tabelas professors e bolsistas
+- [x] Nenhuma migration necessária
+
+### FASE 2: Criar UI para Gerenciar Emails ✅
+- [x] Componente EmailManagement.tsx criado
+- [x] Página EmailManagementPage.tsx criada
+- [x] Rota /admin/emails adicionada
+- [x] Validação de email inline
+- [x] Botões de salvar/cancelar funcionando
+- [x] Listagem de emails existentes
+
+### FASE 3: Integrar com Google Calendar Sync ✅
+- [x] Endpoints tRPC criados: trpc.professor.updateEmail()
+- [x] Endpoints tRPC criados: trpc.bolsistaEmail.updateEmail()
+- [x] Função updateBolsistaEmail() adicionada em db.ts
+- [x] Sincronização já usa emails dos professores/bolsistas
+- [x] Tratamento de erro se email não existir
+- [x] Broadcast de atualização via WebSocket
+
+### FASE 4: Testes ✅
+- [x] 6 testes de validação de email passando
+- [x] Teste de validação de formato
+- [x] Teste de rejeição de emails inválidos
+- [x] Teste de requisitos de professor
+- [x] Teste de requisitos de bolsista
+- [x] Teste de fluxo completo
+
+### FASE 5: Validação Final ✅
+- [x] Eventos são criados no calendário correto
+- [x] Convites são enviados para os emails corretos
+- [x] Fluxo completo end-to-end testado e validado

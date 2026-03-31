@@ -584,6 +584,20 @@ export const appRouter = router({
       }),
   }),
 
+  // Bolsista email router
+  bolsistaEmail: router({
+    updateEmail: protectedProcedure
+      .input(z.object({
+        bolsistaId: z.number(),
+        email: z.string().email(),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await db.updateBolsistaEmail(input.bolsistaId, input.email);
+        broadcastConfigUpdate({ type: 'bolsista', action: 'updated', data: result });
+        return result;
+      }),
+  }),
+
   // Bulk import router
   import: router({
     parseProfessoresCSV: protectedProcedure

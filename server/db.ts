@@ -438,6 +438,13 @@ export async function updateProfessorEmail(professorId: number, email: string) {
   return await db.update(professores).set({ email }).where(eq(professores.id, professorId));
 }
 
+export async function updateBolsistaEmail(bolsistaId: number, email: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.update(bolsistas).set({ email }).where(eq(bolsistas.id, bolsistaId));
+}
+
 export async function getProfessorByName(nome: string) {
   const db = await getDb();
   if (!db) return null;
