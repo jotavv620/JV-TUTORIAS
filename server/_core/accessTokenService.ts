@@ -95,82 +95,36 @@ export async function loginWithAccessToken(token: string) {
   }
 
   // Create new user from token
-  const openId = crypto.randomBytes(16).toString('hex');
-  
-  try {
-    const newUserResult = await db.insert(users).values({
-      openId,
-      name: accessToken.name,
-      userType: accessToken.userType,
-      registeredLocally: true,
-      role: accessToken.userType === 'admin' ? 'admin' : 'user',
-    });
+  const newUserResult = await db.insert(users).values({
+    name: accessToken.name,
+    userType: accessToken.userType,
+    registeredLocally: true,
+    role: accessToken.userType === 'admin' ? 'admin' : 'user',
+  });
 
-    // Extract insertId from result - handle different result shapes
-    let newUserId: number | undefined;
-    
-    if (Array.isArray(newUserResult)) {
-      // Result is an array
-      newUserId = (newUserResult[0] as any)?.insertId;
-    } else if (typeof newUserResult === 'object' && newUserResult !== null) {
-      // Result is an object
-      newUserId = (newUserResult as any).insertId;
-    }
+  const newUserId = (newUserResult as any).insertId;
 
-    if (!newUserId || typeof newUserId !== 'number') {
-      console.error('[AccessToken] Failed to extract insertId from insert result:', {
-        openId,
-        tokenId: accessToken.id,
-        resultType: typeof newUserResult,
-        resultIsArray: Array.isArray(newUserResult),
-        result: newUserResult,
-      });
-      throw new Error('Failed to extract user ID from insert result');
-    }
-
-    // Link token to user and mark as used
-    await db
-      .update(accessTokens)
-      .set({
-        userId: newUserId,
-        usedAt: new Date(),
-      })
-      .where(eq(accessTokens.id, accessToken.id));
-
-    // Get the created user by openId (more reliable than by ID)
-    const createdUserResult = await db
-      .select()
-      .from(users)
-      .where(eq(users.openId, openId))
-      .limit(1);
-
-    if (createdUserResult.length === 0) {
-      console.error('[AccessToken] User created but not found after insert:', {
-        openId,
-        newUserId,
-        tokenId: accessToken.id,
-      });
-      throw new Error('User created but not found in database');
-    }
-
-    console.log('[AccessToken] User successfully created and logged in:', {
+  // Link token to user and mark as used
+  await db
+    .update(accessTokens)
+    .set({
       userId: newUserId,
-      openId,
-      userType: accessToken.userType,
-    });
+      usedAt: new Date(),
+    })
+    .where(eq(accessTokens.id, accessToken.id));
 
-    return createdUserResult[0];
-  } catch (error: any) {
-    console.error('[AccessToken] Error creating user from token:', {
-      openId,
-      tokenId: accessToken.id,
-      tokenName: accessToken.name,
-      error: error.message,
-      sqlMessage: (error as any).sqlMessage,
-      code: (error as any).code,
-    });
-    throw error;
+  // Get the created user
+  const createdUserResult = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, newUserId))
+    .limit(1);
+
+  if (createdUserResult.length === 0) {
+    throw new Error('Failed to create user');
   }
+
+  return createdUserResult[0];
 }
 
 /**

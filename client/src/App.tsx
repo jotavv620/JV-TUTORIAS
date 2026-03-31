@@ -25,22 +25,12 @@ function Router() {
 
   return (
     <Switch>
-      <Route path={"/"}>
-        {() => isAuthenticated ? <TutoriaManagerIntegrated /> : <Home />}
-      </Route>
-      <Route path={"/app"}>
-        {() => <TutoriaManagerIntegrated />}
-      </Route>
-      <Route path={"/dashboard"}>
-        {() => <PublicDashboard />}
-      </Route>
-      <Route path={"/404"}>
-        {() => <NotFound />}
-      </Route>
+      <Route path={"/"} component={isAuthenticated ? TutoriaManagerIntegrated : Home} />
+      <Route path={"/app"} component={TutoriaManagerIntegrated} />
+      <Route path={"/dashboard"} component={PublicDashboard} />
+      <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
-      <Route>
-        {() => <NotFound />}
-      </Route>
+      <Route component={NotFound} />
     </Switch>
   );
 }

@@ -11,31 +11,15 @@ export function useCustomAuth(options?: UseAuthOptions) {
     options ?? {};
   const utils = trpc.useUtils();
   const [isLoading, setIsLoading] = useState(true);
-  const [hasTimedOut, setHasTimedOut] = useState(false);
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
-    retry: 1,
-    retryDelay: 1000,
+    retry: false,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   } as any);
-
-  // Set timeout for auth check (5 seconds)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (meQuery.isLoading) {
-        setHasTimedOut(true);
-        setIsLoading(false);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [meQuery.isLoading]);
 
   useEffect(() => {
     if (!meQuery.isLoading) {
       setIsLoading(false);
-      setHasTimedOut(false);
     }
   }, [meQuery.isLoading]);
 
@@ -67,7 +51,7 @@ export function useCustomAuth(options?: UseAuthOptions) {
     }
     return {
       user: meQuery.data ?? null,
-      loading: (isLoading && !hasTimedOut) || meQuery.isLoading,
+      loading: isLoading || meQuery.isLoading,
       error: meQuery.error ?? logoutMutation.error ?? null,
       isAuthenticated: Boolean(meQuery.data),
     };
@@ -76,14 +60,13 @@ export function useCustomAuth(options?: UseAuthOptions) {
     meQuery.error,
     meQuery.isLoading,
     isLoading,
-    hasTimedOut,
     logoutMutation.error,
     logoutMutation.isPending,
   ]);
 
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;
-    if (state.loading) return;
+    if (isLoading || logoutMutation.isPending) return;
     if (state.user) return;
     if (typeof window === "undefined") return;
     if (window.location.pathname === redirectPath) return;
@@ -92,7 +75,8 @@ export function useCustomAuth(options?: UseAuthOptions) {
   }, [
     redirectOnUnauthenticated,
     redirectPath,
-    state.loading,
+    logoutMutation.isPending,
+    isLoading,
     state.user,
   ]);
 

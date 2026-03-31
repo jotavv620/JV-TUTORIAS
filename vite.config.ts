@@ -162,10 +162,6 @@ export default defineConfig({
     },
   },
   envDir: path.resolve(import.meta.dirname),
-  define: {
-    __VITE_HMR_HOST__: JSON.stringify(process.env.VITE_HMR_HOST || "localhost"),
-    __VITE_HMR_PORT__: JSON.stringify(process.env.VITE_HMR_PORT || "443"),
-  },
   root: path.resolve(import.meta.dirname, "client"),
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
@@ -187,12 +183,5 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    hmr: {
-      protocol: "wss",
-      host: "localhost",
-      port: 5173,
-      timeout: 60000,
-    },
-    middlewareMode: true,
   },
 });

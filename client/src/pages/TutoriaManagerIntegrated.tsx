@@ -110,16 +110,15 @@ export default function TutoriaManagerIntegrated() {
   });
 
   // Keep full objects for proper key handling
-  const disciplinas = Array.isArray(disciplinasData) ? disciplinasData : [];
-  const professores = Array.isArray(professoresData) ? professoresData : [];
-  const instituicoes = Array.isArray(instituicoesData) ? instituicoesData : [];
-  const bolsistas = Array.isArray(bolsistasData) ? bolsistasData : [];
+  const disciplinas = disciplinasData;
+  const professores = professoresData;
+  const instituicoes = instituicoesData;
   
   // Extract just names for dropdowns
   const disciplinasNames = disciplinas.map((d: any) => d.nome || d);
   const professoresNames = professores.map((p: any) => p.nome || p);
   const instituicoesNames = instituicoes.map((i: any) => i.nome || i);
-  const bolsistasNames = bolsistas.map((b: any) => b.nome || b);
+  const bolsistasNames = bolsistasData.map((b: any) => b.nome || b);
 
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -249,9 +248,24 @@ export default function TutoriaManagerIntegrated() {
     }
   };
 
-  // Google Calendar sync is not implemented yet
+  const syncGoogleCalendarMutation = trpc.tutorias.syncGoogleCalendar?.useMutation({
+    onSuccess: () => {
+      refetchTutorias();
+      toast.success('Tutoria sincronizada com Google Calendar!');
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Erro ao sincronizar com Google Calendar');
+    },
+  });
+
   const handleSyncGoogleCalendar = async (tutoriaId: number) => {
-    toast.info('Sincronização com Google Calendar em breve!');
+    try {
+      if (syncGoogleCalendarMutation) {
+        await syncGoogleCalendarMutation.mutateAsync({ tutoriaId });
+      }
+    } catch (error: any) {
+      console.error('Erro ao sincronizar:', error);
+    }
   };
 
   const handleAddItem = async (type: string, value: string, email?: string) => {

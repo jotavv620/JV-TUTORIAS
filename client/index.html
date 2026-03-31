@@ -17,19 +17,6 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Suppress Vite HMR connection errors in non-localhost environments
-      if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
-        const originalError = console.error;
-        console.error = function(...args) {
-          const message = args[0]?.toString?.() || '';
-          if (message.includes('[vite]') && message.includes('websocket')) {
-            return; // Silently ignore Vite WebSocket errors
-          }
-          originalError.apply(console, args);
-        };
-      }
-    </script>
     <script
       defer
       src="%VITE_ANALYTICS_ENDPOINT%/umami"
