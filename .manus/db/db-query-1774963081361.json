@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, name, email, role FROM users LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute SELECT id, name, email, role FROM users LIMIT 5;",
+  "rows": [
+    {
+      "id": "421261",
+      "name": "keven",
+      "email": "NULL",
+      "role": "admin"
+    },
+    {
+      "id": "480115",
+      "name": "João Vitor",
+      "email": "jv0261324@gmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "600050",
+      "name": "Kevin Wallace Almeida Cardoso",
+      "email": "kevin.cardoso@unef.edu.br",
+      "role": "user"
+    },
+    {
+      "id": "601370",
+      "name": "João Vitor ",
+      "email": "user_120003@tutoria-manager.local",
+      "role": "admin"
+    },
+    {
+      "id": "601387",
+      "name": "João Vitor ",
+      "email": "user_120004@tutoria-manager.local",
+      "role": "user"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n421261\tkeven\tNULL\tadmin\n480115\tJoão Vitor\tjv0261324@gmail.com\tadmin\n600050\tKevin Wallace Almeida Cardoso\tkevin.cardoso@unef.edu.br\tuser\n601370\tJoão Vitor \tuser_120003@tutoria-manager.local\tadmin\n601387\tJoão Vitor \tuser_120004@tutoria-manager.local\tuser\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

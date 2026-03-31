@@ -54,12 +54,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    registerMutation.mutate({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      userType: formData.userType,
-    });
+    registerMutation.mutate({});
     setLoading(false);
   };
 

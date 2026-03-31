@@ -531,27 +531,32 @@ export async function getTutoriaById(tutoriaId: number) {
 // Google OAuth Token functions
 export async function saveGoogleAuthToken(
   userId: number,
-  accessToken: string,
-  refreshToken: string | null,
-  expiresAt: Date | null,
-  scope: string
+  accessToken: string | null | undefined,
+  refreshToken: string | null | undefined,
+  expiresAt: Date | null | undefined,
+  scope: string | null | undefined
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
+  // Ensure accessToken is provided (required field)
+  if (!accessToken) {
+    throw new Error("accessToken is required for saveGoogleAuthToken");
+  }
+  
   return await db.insert(googleAuthTokens).values({
     userId,
     accessToken,
-    refreshToken,
-    expiresAt,
-    scope,
+    refreshToken: refreshToken || null,
+    expiresAt: expiresAt || null,
+    scope: scope || null,
     tokenType: 'Bearer',
   }).onDuplicateKeyUpdate({
     set: {
       accessToken,
-      refreshToken,
-      expiresAt,
-      scope,
+      refreshToken: refreshToken || null,
+      expiresAt: expiresAt || null,
+      scope: scope || null,
       updatedAt: new Date(),
     },
   });

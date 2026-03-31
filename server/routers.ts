@@ -55,6 +55,9 @@ export const appRouter = router({
           
           // Create session using SDK (similar to OAuth)
           const { sdk } = await import("./_core/sdk");
+          if (!user.openId) {
+            throw new Error("User openId is required for session creation");
+          }
           const sessionToken = await sdk.createSessionToken(user.openId, {
             name: user.name || "",
             expiresInMs: 365 * 24 * 60 * 60 * 1000, // 1 year
@@ -97,12 +100,13 @@ export const appRouter = router({
         try {
           const tokens = await exchangeCodeForTokens(input.code);
           
+          const scope = tokens.scope ? String(tokens.scope) : '';
           await db.saveGoogleAuthToken(
             ctx.user.id,
             tokens.accessToken,
-            tokens.refreshToken || null,
-            tokens.expiresAt,
-            tokens.scope || ''
+            tokens.refreshToken ?? null,
+            tokens.expiresAt ?? null,
+            scope
           );
 
           return {

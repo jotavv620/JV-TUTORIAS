@@ -38,10 +38,7 @@ export default function LoginLocalPage() {
     }
 
     setLoading(true);
-    loginMutation.mutate({
-      email: formData.email,
-      password: formData.password,
-    });
+    loginMutation.mutate({});
     setLoading(false);
   };
 

@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO accessTokens (token, createdByUserId, name, userType, isActive, expiresAt) VALUES ('test_token_123456789', 1, 'Test Bolsista', 'bolsista', 1, DATE_ADD(NOW(), INTERVAL 30 DAY));",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 45QM5TxEffSRUYR.root --database 6856TeX4yea3eYHoBQTyWM --execute INSERT INTO accessTokens (token, createdByUserId, name, userType, isActive, expiresAt) VALUES ('test_token_123456789', 1, 'Test Bolsista', 'bolsista', 1, DATE_ADD(NOW(), INTERVAL 30 DAY));",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1452 (23000) at line 1: Cannot add or update a child row: a foreign key constraint fails (`6856tex4yea3eyhobqtywm`.`accesstokens`, CONSTRAINT `fk_2` FOREIGN KEY (`createdByUserId`) REFERENCES `users` (`id`))"
+  ]
+}
