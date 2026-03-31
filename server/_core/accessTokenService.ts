@@ -68,11 +68,6 @@ export async function loginWithAccessToken(token: string) {
     throw new Error('Access token has expired');
   }
 
-  // Check if token was already used
-  if (accessToken.usedAt) {
-    throw new Error('Access token has already been used');
-  }
-
   // If token already has a userId, use existing user
   if (accessToken.userId) {
     const userResult = await db
