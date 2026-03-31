@@ -788,3 +788,11 @@
 - [x] Adicionado tratamento de erros e logging
 - [x] Redirecionamento automático após autorização
 - [x] Salvamento de tokens no banco de dados
+
+
+## GOOGLE OAUTH REDIRECT URI CORRECTION - EM PROGRESSO
+- [ ] Atualizar redirect URI no Google Cloud Console
+- [ ] Remover: https://tutormanag-6856tex4.manus.space/api/oauth/callback
+- [ ] Adicionar: https://tutormanag-6856tex4.manus.space/api/oauth/google/callback
+- [ ] Aguardar propagação (5-10 minutos)
+- [ ] Testar conexão novamente
