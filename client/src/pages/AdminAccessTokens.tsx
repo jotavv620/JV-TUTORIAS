@@ -24,7 +24,7 @@ export default function AdminAccessTokens() {
   });
 
   // Mutations
-  const createMutation = trpc.accessTokens.create.useMutation({
+  const createMutation = trpc.accessTokens.generate.useMutation({
     onSuccess: (data) => {
       toast.success("Token criado com sucesso!");
       setFormData({ name: "", userType: "bolsista", expiresInDays: "" });
