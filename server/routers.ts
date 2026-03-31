@@ -20,6 +20,8 @@ import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 import { users } from "../drizzle/schema";
 import { generateAuthorizationUrl, exchangeCodeForTokens, revokeAccessToken } from "./_core/googleOAuthService";
+import crypto from 'crypto';
+import { accessTokens } from "../drizzle/schema";
 
 export const appRouter = router({
   system: systemRouter,
@@ -125,13 +127,14 @@ export const appRouter = router({
           const { loginWithAccessToken } = await import("./_core/accessTokenService");
           const user = await loginWithAccessToken(input.token);
           
-          // Create session cookie
-          const { sdk } = await import('./_core/sdk');
+          // Create session using SDK (similar to OAuth)
+          const { sdk } = await import("./_core/sdk");
           const sessionToken = await sdk.createSessionToken(user.openId, {
-            name: (user.name || '') as string,
-            expiresInMs: 365 * 24 * 60 * 60 * 1000,
+            name: user.name || "",
+            expiresInMs: 365 * 24 * 60 * 60 * 1000, // 1 year
           });
           
+          // Set session cookie
           const cookieOptions = getSessionCookieOptions(ctx.req);
           ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: 365 * 24 * 60 * 60 * 1000 });
           
@@ -720,6 +723,92 @@ export const appRouter = router({
         }
 
         return results;
+      }),
+  }),
+  accessTokens: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== 'admin') {
+        throw new Error('Apenas administradores podem listar tokens');
+      }
+      return await db.getAccessTokensByCreatedBy(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1, 'Nome é obrigatório'),
+        userType: z.enum(['admin', 'professor', 'bolsista']).default('bolsista'),
+        expiresInDays: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') {
+          throw new Error('Apenas administradores podem criar tokens');
+        }
+        
+        // Generate random token (32 bytes = 64 hex chars)
+        const token = crypto.randomBytes(32).toString('hex');
+        
+        const expiresAt = input.expiresInDays 
+          ? new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000)
+          : undefined;
+        
+        await db.createAccessToken({
+          token,
+          name: input.name,
+          userType: input.userType,
+          createdByUserId: ctx.user.id,
+          expiresAt,
+        });
+        
+        return { token, name: input.name, expiresAt };
+      }),
+    revoke: protectedProcedure
+      .input(z.object({ tokenId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') {
+          throw new Error('Apenas administradores podem revogar tokens');
+        }
+        
+        // Verify token belongs to this admin
+        const database = await db.getDb();
+        if (!database) throw new Error('Database not available');
+        const token = await database.select().from(accessTokens).where(
+          eq(accessTokens.id, input.tokenId)
+        ).limit(1);
+        
+        if (!token || token.length === 0) {
+          throw new Error('Token não encontrado');
+        }
+        
+        if (token[0].createdByUserId !== ctx.user.id) {
+          throw new Error('Você não tem permissão para revogar este token');
+        }
+        
+        await db.revokeAccessToken(input.tokenId);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ tokenId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') {
+          throw new Error('Apenas administradores podem deletar tokens');
+        }
+        
+        // Verify token belongs to this admin
+        const database = await db.getDb();
+        if (!database) throw new Error('Database not available');
+        const token = await database.select().from(accessTokens).where(
+          eq(accessTokens.id, input.tokenId)
+        ).limit(1);
+        
+        if (!token || token.length === 0) {
+          throw new Error('Token não encontrado');
+        }
+        
+        if (token[0].createdByUserId !== ctx.user.id) {
+          throw new Error('Você não tem permissão para deletar este token');
+        }
+        
+        await db.deleteAccessToken(input.tokenId);
+        return { success: true };
       }),
   }),
 });

@@ -115,10 +115,10 @@ export default function TutoriaManagerIntegrated() {
   const instituicoes = instituicoesData;
   
   // Extract just names for dropdowns
-  const disciplinasNames = Array.isArray(disciplinas) ? disciplinas.map((d: any) => d.nome || d) : [];
-  const professoresNames = Array.isArray(professores) ? professores.map((p: any) => p.nome || p) : [];
-  const instituicoesNames = Array.isArray(instituicoes) ? instituicoes.map((i: any) => i.nome || i) : [];
-  const bolsistasNames = Array.isArray(bolsistasData) ? bolsistasData.map((b: any) => b.nome || b) : [];
+  const disciplinasNames = disciplinas.map((d: any) => d.nome || d);
+  const professoresNames = professores.map((p: any) => p.nome || p);
+  const instituicoesNames = instituicoes.map((i: any) => i.nome || i);
+  const bolsistasNames = bolsistasData.map((b: any) => b.nome || b);
 
   // Local state
   const [isModalOpen, setIsModalOpen] = useState(false);

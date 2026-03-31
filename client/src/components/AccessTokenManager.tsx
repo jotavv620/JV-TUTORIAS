@@ -15,7 +15,7 @@ export default function AccessTokenManager() {
   const { data: tokens = [], refetch } = trpc.accessTokens.list.useQuery();
 
   // Generate token mutation
-  const generateMutation = trpc.accessTokens.generate.useMutation({
+  const generateMutation = trpc.accessTokens.create.useMutation({
     onSuccess: (data) => {
       toast.success('Código gerado com sucesso!');
       setName('');
@@ -46,7 +46,7 @@ export default function AccessTokenManager() {
   });
 
   // Deactivate token mutation
-  const deactivateMutation = trpc.accessTokens.deactivate.useMutation({
+  const deactivateMutation = trpc.accessTokens.revoke.useMutation({
     onSuccess: () => {
       toast.success('Código desativado com sucesso!');
       refetch();
