@@ -97,6 +97,9 @@ export async function loginWithAccessToken(token: string) {
   // Create new user from token
   const newUserResult = await db.insert(users).values({
     name: accessToken.name,
+    email: `user_${accessToken.id}@tutoria-manager.local`,
+    openId: `token_${accessToken.id}_${Date.now()}`,
+    loginMethod: 'token',
     userType: accessToken.userType,
     registeredLocally: true,
     role: accessToken.userType === 'admin' ? 'admin' : 'user',
