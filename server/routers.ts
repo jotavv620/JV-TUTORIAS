@@ -125,6 +125,16 @@ export const appRouter = router({
           const { loginWithAccessToken } = await import("./_core/accessTokenService");
           const user = await loginWithAccessToken(input.token);
           
+          // Create session cookie
+          const { sdk } = await import('./_core/sdk');
+          const sessionToken = await sdk.createSessionToken(user.openId, {
+            name: (user.name || '') as string,
+            expiresInMs: 365 * 24 * 60 * 60 * 1000,
+          });
+          
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: 365 * 24 * 60 * 60 * 1000 });
+          
           return { 
             success: true,
             message: "Acesso concedido com sucesso",
