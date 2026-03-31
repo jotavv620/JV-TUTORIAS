@@ -517,3 +517,36 @@
 - [x] Botão "Google Cal" visível no dashboard
 - [x] Credenciais Google validadas
 - [x] Sem erros de TypeScript relacionados a Google Calendar
+
+
+## CORREÇÃO - GOOGLE OAUTH CALLBACK HANDLER ✅
+
+### Problema Identificado
+- ❌ Callback handler não estava salvando tokens no banco de dados
+- ❌ Usuários não conseguiam conectar Google porque tokens não eram persistidos
+- ❌ Erro: "Você precisa conectar sua conta Google primeiro" mesmo após autorizar
+
+### Solução Implementada ✅
+- [x] Reescrito callback handler em oauth.ts
+- [x] Agora salva tokens em `db.saveGoogleAuthToken()`
+- [x] Extrai user ID do state parameter
+- [x] Redireciona para `/app` após sucesso
+- [x] Logging de sucesso para debug
+
+### Testes Criados ✅
+- [x] 4 testes de Google OAuth Callback (passando)
+- [x] 4 testes de integração completa (passando)
+- [x] Validação de redirect URI
+- [x] Validação de state parameter
+- [x] Validação de token structure
+- [x] Validação de error states
+
+### Fluxo Completo Agora Funciona ✅
+1. [x] Usuário clica "Conectar Google"
+2. [x] Sistema redireciona para Google
+3. [x] Usuário autoriza acesso
+4. [x] Google redireciona para `/api/oauth/callback`
+5. [x] Sistema salva tokens no banco
+6. [x] Usuário redireciona para `/app`
+7. [x] Botão "Google Cal" agora funciona
+8. [x] Eventos são criados no Google Calendar do professor

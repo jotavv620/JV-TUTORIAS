@@ -1,8 +1,10 @@
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+
+const COOKIE_NAME = "session";
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -10,7 +12,7 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  // Google OAuth callback
+  // Google OAuth callback - handles Google Calendar OAuth
   app.get("/api/oauth/google/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -21,24 +23,36 @@ export function registerOAuthRoutes(app: Express) {
     }
 
     try {
+      // Get user ID from state (state contains user ID)
+      const userId = parseInt(state, 10);
+      if (isNaN(userId)) {
+        res.status(400).json({ error: "Invalid state parameter" });
+        return;
+      }
+
       // Exchange code for tokens using googleOAuthService
       const { exchangeCodeForTokens } = await import("./googleOAuthService");
       const tokens = await exchangeCodeForTokens(code);
 
-      // Get user info from Google
-      const { createAuthenticatedClient } = await import("./googleOAuthService");
-      const client = await createAuthenticatedClient(tokens.accessToken || "");
+      // Save tokens to database
+      const scope = tokens.scope ? String(tokens.scope) : '';
+      await db.saveGoogleAuthToken(
+        userId,
+        tokens.accessToken,
+        tokens.refreshToken ?? null,
+        tokens.expiresAt ?? null,
+        scope
+      );
       
-      // Store tokens in session and redirect to dashboard
-      const sessionToken = JSON.stringify({ googleTokens: tokens });
-      res.cookie("google_session", sessionToken, { httpOnly: true, maxAge: 3600000 });
-      res.redirect(302, "/dashboard");
+      console.log('[Google OAuth] Tokens saved for user:', userId);
+      res.redirect(302, "/app");
     } catch (error) {
       console.error("[Google OAuth] Callback failed", error);
       res.status(500).json({ error: "Google OAuth callback failed" });
     }
   });
 
+  // Manus OAuth callback - handles Manus platform authentication
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
