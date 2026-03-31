@@ -410,3 +410,27 @@
 - [x] Verificar que login funciona via API
 - [x] Verificar que usuário é criado no banco de dados
 - [x] Verificar que sessão é estabelecida corretamente
+
+
+## CORREÇÃO - ERRO REACT #321 NO LOGIN ✅
+
+### FASE 1: Identificar o Erro
+- [x] Erro React #321 ocorria ao clicar em "Acessar"
+- [x] Causa: `trpc.useUtils()` chamado dentro do callback `onSuccess`
+- [x] Violava as regras dos hooks do React (hooks devem ser chamados no topo do componente)
+
+### FASE 2: Corrigir o Erro
+- [x] Mover `const utils = trpc.useUtils()` para o topo do componente Home.tsx
+- [x] Remover a chamada de hook do callback `onSuccess`
+- [x] Usar a variável `utils` já inicializada no callback
+
+### FASE 3: Testar a Correção
+- [x] Verificar que o servidor responde corretamente ao login
+- [x] Verificar que o usuário é criado/recuperado
+- [x] Verificar que a sessão é estabelecida
+- [x] Verificar que o redirecionamento funciona
+
+### FASE 4: Validação Final
+- [x] Erro React #321 resolvido
+- [x] Login funciona sem erros
+- [x] Redirecionamento para dashboard funciona

@@ -6,6 +6,7 @@ import { Key, Loader2 } from 'lucide-react';
 export default function Home() {
   const [accessCode, setAccessCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const utils = trpc.useUtils();
 
   // Login with access code mutation
   const loginMutation = trpc.auth.loginWithToken.useMutation({
@@ -17,7 +18,6 @@ export default function Home() {
       setAccessCode('');
       setIsLoading(false);
       // Invalidate auth cache to trigger re-render
-      const utils = trpc.useUtils();
       utils.auth.me.invalidate().then(() => {
         window.location.href = '/';
       });
