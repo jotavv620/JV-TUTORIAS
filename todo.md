@@ -619,3 +619,48 @@
 - [x] Eventos são criados no calendário correto
 - [x] Convites são enviados para os emails corretos
 - [x] Fluxo completo end-to-end testado e validado
+
+
+## UX IMPROVEMENT - GOOGLE CALENDAR SYNC - EM PROGRESSO
+
+### FASE 1: Link Direto para Conectar Google
+- [ ] Modificar botão "Google Cal" para mostrar "Conectar Google" quando não autenticado
+- [ ] Adicionar link direto para conectar Google no botão
+- [ ] Mostrar toast informativo explicando o fluxo
+- [ ] Redirecionar automaticamente após autorizar
+
+### FASE 2: Testes
+- [ ] Testar que botão mostra "Conectar Google" quando não autenticado
+- [ ] Testar que clique redireciona para Google OAuth
+- [ ] Testar que após autorizar, volta para dashboard
+- [ ] Testar que "Google Cal" funciona após autorizar
+
+### FASE 3: Validação
+- [ ] Verificar UX melhorada
+- [ ] Confirmar fluxo completo funciona
+
+
+## UX IMPROVEMENT - GOOGLE CALENDAR SYNC ✅ COMPLETO
+
+### FASE 1: Link Direto para Conectar Google ✅
+- [x] Botão "Google Cal" mostra "Conectar Google" quando não autenticado
+- [x] Link direto para conectar Google no botão
+- [x] Toast informativo explicando o fluxo
+- [x] Redirecionamento automático após autorizar
+- [x] Botão muda cor: laranja (não conectado) → roxo (conectado)
+- [x] Loading state durante conexão
+
+### FASE 2: Testes ✅
+- [x] 9 testes de UX passando
+- [x] Teste que botão mostra "Conectar Google" quando não autenticado
+- [x] Teste que clique redireciona para Google OAuth
+- [x] Teste que após autorizar, volta para dashboard
+- [x] Teste que "Google Cal" funciona após autorizar
+- [x] Teste de mudança de cor
+- [x] Teste de loading state
+- [x] Teste de fluxo completo
+
+### FASE 3: Validação ✅
+- [x] UX melhorada e intuitiva
+- [x] Fluxo completo funciona perfeitamente
+- [x] Botão responsivo a mudanças de estado

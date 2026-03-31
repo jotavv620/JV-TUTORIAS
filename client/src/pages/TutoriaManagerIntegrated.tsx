@@ -248,6 +248,18 @@ export default function TutoriaManagerIntegrated() {
     }
   };
 
+  // Check Google Calendar connection status
+  const { data: googleStatus } = trpc.google.getStatus.useQuery();
+  
+  const getGoogleAuthUrlMutation = trpc.google.getAuthUrl.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data.authUrl;
+    },
+    onError: () => {
+      toast.error('Erro ao conectar com Google');
+    },
+  });
+
   const syncGoogleCalendarMutation = trpc.tutorias.syncGoogleCalendar?.useMutation({
     onSuccess: () => {
       refetchTutorias();
@@ -259,6 +271,13 @@ export default function TutoriaManagerIntegrated() {
   });
 
   const handleSyncGoogleCalendar = async (tutoriaId: number) => {
+    // Check if user is connected to Google
+    if (!googleStatus?.connected) {
+      toast.info('Conectando com Google Calendar...');
+      await getGoogleAuthUrlMutation.mutateAsync();
+      return;
+    }
+    
     try {
       if (syncGoogleCalendarMutation) {
         await syncGoogleCalendarMutation.mutateAsync({ tutoriaId });
@@ -463,7 +482,17 @@ export default function TutoriaManagerIntegrated() {
                           <div className="flex gap-2 flex-wrap">
                             <button onClick={() => setActiveCheckin(tutoria)} className="px-3 py-1 bg-blue-500 text-white rounded-lg text-xs font-bold hover:bg-blue-600">Check-in</button>
                             <button onClick={() => setActiveFeedback(tutoria)} className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Feedback</button>
-                            <button onClick={() => handleSyncGoogleCalendar(tutoria.id)} className="px-3 py-1 bg-purple-500 text-white rounded-lg text-xs font-bold hover:bg-purple-600">Google Cal</button>
+                            <button 
+                              onClick={() => handleSyncGoogleCalendar(tutoria.id)} 
+                              disabled={getGoogleAuthUrlMutation.isPending || syncGoogleCalendarMutation?.isPending}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold ${
+                                googleStatus?.connected 
+                                  ? 'bg-purple-500 text-white hover:bg-purple-600' 
+                                  : 'bg-orange-500 text-white hover:bg-orange-600'
+                              } disabled:opacity-50`}
+                            >
+                              {getGoogleAuthUrlMutation.isPending ? 'Conectando...' : googleStatus?.connected ? 'Google Cal' : 'Conectar Google'}
+                            </button>
                             <button onClick={() => setDeleteConfirmation(tutoria.id)} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600">Deletar</button>
                           </div>
                         </td>
