@@ -10,6 +10,7 @@ import { useCustomAuth } from "@/_core/hooks/useCustomAuth";
 import Home from "./pages/Home";
 import AdminAccessTokens from "./pages/AdminAccessTokens";
 import EmailManagementPage from "./pages/EmailManagementPage";
+import CommunicationDashboard from "./pages/CommunicationDashboard";
 
 function Router() {
   const { isAuthenticated, loading } = useCustomAuth();
@@ -41,6 +42,9 @@ function Router() {
       </Route>
       <Route path={"/admin/emails"}>
         {() => <EmailManagementPage />}
+      </Route>
+      <Route path={"/admin/communications"}>
+        {() => <CommunicationDashboard />}
       </Route>
       <Route path={"/404"}>
         {() => <NotFound />}

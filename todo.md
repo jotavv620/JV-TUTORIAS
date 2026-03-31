@@ -719,3 +719,52 @@
 - [x] Conteúdo do email está correto e formatado
 - [x] Fluxo completo funcionando sem erros
 - [x] Sistema não bloqueia se email falhar
+
+
+## HISTÓRICO DE SINCRONIZAÇÕES - EM PROGRESSO
+
+### FASE 1: Criar Tabela de Sincronizações
+- [ ] Adicionar tabela syncHistory ao schema
+- [ ] Campos: id, tutoriaId, syncType, status, message, timestamp
+- [ ] Criar migration com drizzle-kit
+
+### FASE 2: Integrar com Google Calendar Sync
+- [ ] Registrar sincronização ao criar evento no Google Calendar
+- [ ] Registrar erros de sincronização
+- [ ] Armazenar ID do evento do Google Calendar
+
+### FASE 3: Testes
+- [ ] Testar que sincronização é registrada
+- [ ] Testar que erros são registrados
+- [ ] Testar que histórico é consultável
+
+## NOTIFICAÇÃO DE SINCRONIZAÇÃO - EM PROGRESSO
+
+### FASE 1: Criar Template de Email
+- [ ] Template HTML para notificação de sincronização
+- [ ] Incluir link direto para evento no Google Calendar
+- [ ] Incluir detalhes da tutoria
+
+### FASE 2: Integrar com Sync
+- [ ] Enviar email quando sincronização é bem-sucedida
+- [ ] Enviar email com erro se sincronização falhar
+- [ ] Usar função sendEmail existente
+
+### FASE 3: Testes
+- [ ] Testar envio de email de sucesso
+- [ ] Testar envio de email de erro
+
+## DASHBOARD DE LEMBRETES - EM PROGRESSO
+
+### FASE 1: Criar Página
+- [ ] Criar página CommunicationDashboard.tsx
+- [ ] Listar histórico de emails enviados
+- [ ] Listar histórico de sincronizações
+
+### FASE 2: Adicionar Rota
+- [ ] Adicionar rota /admin/communications
+- [ ] Integrar com menu de navegação
+
+### FASE 3: Testes
+- [ ] Testar que página carrega
+- [ ] Testar que dados são exibidos corretamente

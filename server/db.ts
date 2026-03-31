@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, googleAuthTokens, accessTokens, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista, GoogleAuthToken, AccessToken, InsertAccessToken } from "../drizzle/schema";
+import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, googleAuthTokens, accessTokens, syncHistory, emailLog, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista, GoogleAuthToken, AccessToken, InsertAccessToken, SyncHistory, InsertSyncHistory, EmailLog, InsertEmailLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -728,4 +728,70 @@ export async function deleteAccessToken(tokenId: number) {
   if (!db) throw new Error("Database not available");
   
   return await db.delete(accessTokens).where(eq(accessTokens.id, tokenId));
+}
+
+
+// Sync history functions
+export async function recordSyncHistory(data: InsertSyncHistory) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(syncHistory).values(data);
+}
+
+export async function getSyncHistoryByTutoriaId(tutoriaId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(syncHistory).where(eq(syncHistory.tutoriaId, tutoriaId));
+}
+
+export async function getAllSyncHistory(limit: number = 100, offset: number = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(syncHistory).orderBy((t) => t.createdAt).limit(limit).offset(offset);
+}
+
+export async function updateSyncHistoryStatus(syncId: number, status: 'success' | 'error' | 'pending', message?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updateData: any = { status };
+  if (message) updateData.message = message;
+  
+  return await db.update(syncHistory).set(updateData).where(eq(syncHistory.id, syncId));
+}
+
+// Email log functions
+export async function recordEmailLog(data: InsertEmailLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(emailLog).values(data);
+}
+
+export async function getEmailLogByTutoriaId(tutoriaId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(emailLog).where(eq(emailLog.tutoriaId, tutoriaId));
+}
+
+export async function getAllEmailLogs(limit: number = 100, offset: number = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(emailLog).orderBy((t) => t.createdAt).limit(limit).offset(offset);
+}
+
+export async function updateEmailLogStatus(emailId: number, status: 'sent' | 'failed' | 'pending', errorMessage?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updateData: any = { status };
+  if (errorMessage) updateData.errorMessage = errorMessage;
+  if (status === 'sent') updateData.sentAt = new Date();
+  
+  return await db.update(emailLog).set(updateData).where(eq(emailLog.id, emailId));
 }

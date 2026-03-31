@@ -254,3 +254,38 @@ export const accessTokens = mysqlTable("accessTokens", {
 
 export type AccessToken = typeof accessTokens.$inferSelect;
 export type InsertAccessToken = typeof accessTokens.$inferInsert;
+
+
+// Sync history table - tracks Google Calendar synchronizations
+export const syncHistory = mysqlTable("syncHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  tutoriaId: int("tutoriaId").notNull().references(() => tutorias.id, { onDelete: "cascade" }),
+  syncType: mysqlEnum("syncType", ["google_calendar", "email_notification"]).notNull(),
+  status: mysqlEnum("status", ["success", "error", "pending"]).default("pending").notNull(),
+  message: text("message"), // Error message if failed
+  googleEventId: varchar("googleEventId", { length: 255 }), // ID of the Google Calendar event
+  googleEventLink: text("googleEventLink"), // Direct link to the event
+  syncedBy: int("syncedBy").references(() => users.id, { onDelete: "set null" }), // User who triggered sync
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SyncHistory = typeof syncHistory.$inferSelect;
+export type InsertSyncHistory = typeof syncHistory.$inferInsert;
+
+// Email log table - tracks all emails sent
+export const emailLog = mysqlTable("emailLog", {
+  id: int("id").autoincrement().primaryKey(),
+  tutoriaId: int("tutoriaId").notNull().references(() => tutorias.id, { onDelete: "cascade" }),
+  emailType: mysqlEnum("emailType", ["tutoria_reminder", "sync_notification", "error_notification"]).notNull(),
+  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(),
+  recipientType: mysqlEnum("recipientType", ["professor", "bolsista"]).notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["sent", "failed", "pending"]).default("pending").notNull(),
+  errorMessage: text("errorMessage"), // Error message if failed
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type EmailLog = typeof emailLog.$inferSelect;
+export type InsertEmailLog = typeof emailLog.$inferInsert;

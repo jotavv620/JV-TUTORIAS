@@ -392,6 +392,16 @@ export const appRouter = router({
             true
           );
           
+          // Record sync history
+          await db.recordSyncHistory({
+            tutoriaId: input.tutoriaId,
+            syncType: 'google_calendar',
+            status: 'success',
+            googleEventId: eventId,
+            googleEventLink: `https://calendar.google.com/calendar/u/0?cid=${encodeURIComponent(professorData?.email || '')}`,
+            syncedBy: ctx.user.id,
+          });
+          
           return {
             success: true,
             message: 'Tutoria sincronizada com Google Calendar com sucesso!',
@@ -399,6 +409,20 @@ export const appRouter = router({
           };
         } catch (error: any) {
           console.error('[Google Calendar Sync Error]', error);
+          
+          // Record failed sync
+          try {
+            await db.recordSyncHistory({
+              tutoriaId: input.tutoriaId,
+              syncType: 'google_calendar',
+              status: 'error',
+              message: error.message || 'Erro desconhecido',
+              syncedBy: ctx.user.id,
+            });
+          } catch (logError) {
+            console.error('[Sync History Log Error]', logError);
+          }
+          
           throw new Error(error.message || 'Erro ao sincronizar com Google Calendar');
         }
       }),
@@ -716,5 +740,46 @@ export const appRouter = router({
         return results;
       }),
   }),
+
+  // Sync history router
+  syncHistory: router({
+    getByTutoria: protectedProcedure
+      .input(z.object({
+        tutoriaId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getSyncHistoryByTutoriaId(input.tutoriaId);
+      }),
+    
+    getAll: protectedProcedure
+      .input(z.object({
+        limit: z.number().default(100),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        return await db.getAllSyncHistory(input.limit, input.offset);
+      }),
+  }),
+
+  // Email log router
+  emailLog: router({
+    getByTutoria: protectedProcedure
+      .input(z.object({
+        tutoriaId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getEmailLogByTutoriaId(input.tutoriaId);
+      }),
+    
+    getAll: protectedProcedure
+      .input(z.object({
+        limit: z.number().default(100),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        return await db.getAllEmailLogs(input.limit, input.offset);
+      }),
+  }),
 });
+
 export type AppRouter = typeof appRouter;
