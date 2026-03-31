@@ -774,3 +774,17 @@
 - [x] Corrigido redirecionamento pós-login para /app em vez de /
 - [x] Teste de fluxo de login criado
 - [x] Usuários agora são redirecionados corretamente para dashboard após login
+
+
+## GOOGLE OAUTH REDIRECT URI FIX - EM PROGRESSO
+- [ ] Verificar redirect URI no Google Cloud Console
+- [ ] Atualizar para: https://tutormanag-6856tex4.manus.space/api/oauth/callback
+- [ ] Aguardar propagação (5-10 minutos)
+- [ ] Testar conexão com Google novamente
+
+
+## GOOGLE OAUTH CALLBACK FIX - CONCLUÍDO
+- [x] Corrigido callback handler para Google Calendar OAuth
+- [x] Adicionado tratamento de erros e logging
+- [x] Redirecionamento automático após autorização
+- [x] Salvamento de tokens no banco de dados
