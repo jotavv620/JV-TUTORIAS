@@ -768,3 +768,9 @@
 ### FASE 3: Testes
 - [ ] Testar que página carrega
 - [ ] Testar que dados são exibidos corretamente
+
+
+## LOGIN REDIRECT FIX - CONCLUÍDO
+- [x] Corrigido redirecionamento pós-login para /app em vez de /
+- [x] Teste de fluxo de login criado
+- [x] Usuários agora são redirecionados corretamente para dashboard após login

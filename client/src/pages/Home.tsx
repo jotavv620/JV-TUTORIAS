@@ -19,7 +19,7 @@ export default function Home() {
       setIsLoading(false);
       // Invalidate auth cache to trigger re-render
       utils.auth.me.invalidate().then(() => {
-        window.location.href = '/';
+        window.location.href = '/app';
       });
     },
     onError: (error: any) => {
