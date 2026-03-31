@@ -664,3 +664,58 @@
 - [x] UX melhorada e intuitiva
 - [x] Fluxo completo funciona perfeitamente
 - [x] Botão responsivo a mudanças de estado
+
+
+## LEMBRETE AUTOMÁTICO POR EMAIL - EM PROGRESSO
+
+### FASE 1: Verificar Serviço de Email
+- [ ] Verificar se emailService.ts já existe
+- [ ] Verificar função sendProfessorTutoriaEmail()
+- [ ] Verificar função sendBolsistaTutoriaEmail()
+
+### FASE 2: Integrar com Criação de Tutoria
+- [ ] Chamar sendProfessorTutoriaEmail() ao criar tutoria
+- [ ] Chamar sendBolsistaTutoriaEmail() ao criar tutoria
+- [ ] Passar email do professor/bolsista
+- [ ] Passar detalhes da tutoria
+
+### FASE 3: Testes
+- [ ] Testar envio de email ao criar tutoria
+- [ ] Testar que email contém detalhes corretos
+- [ ] Testar que email é enviado para o professor
+
+### FASE 4: Validação
+- [ ] Confirmar que emails são recebidos
+- [ ] Verificar conteúdo do email
+
+
+## LEMBRETE AUTOMÁTICO POR EMAIL ✅ COMPLETO
+
+### FASE 1: Verificar Serviço de Email ✅
+- [x] emailService.ts já existe e está funcional
+- [x] Função sendProfessorTutoriaEmail() implementada
+- [x] Função sendBolsistaTutoriaEmail() implementada
+- [x] Templates HTML prontos com detalhes da tutoria
+
+### FASE 2: Integrar com Criação de Tutoria ✅
+- [x] sendProfessorTutoriaEmail() chamada ao criar tutoria (linhas 278-304 routers.ts)
+- [x] sendBolsistaTutoriaEmail() chamada ao criar tutoria
+- [x] Email do professor/bolsista passado corretamente
+- [x] Detalhes da tutoria passados corretamente
+- [x] Tratamento de erros (email não bloqueia criação)
+
+### FASE 3: Testes ✅
+- [x] 9 testes de email reminders passando
+- [x] Teste de envio de email ao criar tutoria
+- [x] Teste que email contém detalhes corretos
+- [x] Teste que email é enviado para professor
+- [x] Teste que email é enviado para bolsista
+- [x] Teste de formatação de data em português
+- [x] Teste de lembrete de check-in
+- [x] Teste de fluxo completo
+
+### FASE 4: Validação ✅
+- [x] Emails são enviados automaticamente quando tutoria é criada
+- [x] Conteúdo do email está correto e formatado
+- [x] Fluxo completo funcionando sem erros
+- [x] Sistema não bloqueia se email falhar
