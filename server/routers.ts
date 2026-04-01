@@ -276,6 +276,7 @@ export const appRouter = router({
         broadcastTutoriaUpdate('created', result);
         
         // Send emails to professor and bolsista
+        let emailsSent = { professor: false, bolsista: false };
         try {
           const emailData: TutoriaEmailData = {
             disciplina: input.disciplina,
@@ -290,20 +291,22 @@ export const appRouter = router({
           // Get professor email
           const professorData = await db.getProfessorByName(input.professor);
           if (professorData?.email) {
-            await sendProfessorTutoriaEmail(professorData.email, emailData);
+            emailsSent.professor = await sendProfessorTutoriaEmail(professorData.email, emailData);
+            console.log(`[Email] Professor email sent: ${emailsSent.professor}`);
           }
           
           // Get bolsista email
           const bolsistaData = await db.getBolsistaByName(input.bolsista);
           if (bolsistaData?.email) {
-            await sendBolsistaTutoriaEmail(bolsistaData.email, emailData);
+            emailsSent.bolsista = await sendBolsistaTutoriaEmail(bolsistaData.email, emailData);
+            console.log(`[Email] Bolsista email sent: ${emailsSent.bolsista}`);
           }
         } catch (error) {
           console.error('[Email] Error sending tutoria emails:', error);
           // Don't throw - email failure shouldn't block tutoria creation
         }
         
-        return result;
+        return { ...result, emailsSent };
       }),
     
     update: protectedProcedure

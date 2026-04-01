@@ -174,11 +174,20 @@ export default function TutoriaManagerIntegrated() {
   const handleAddTutoria = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createTutoriaMutation.mutateAsync(newTutoria);
+      const result = await createTutoriaMutation.mutateAsync(newTutoria);
       setNewTutoria({ instituicao: '', disciplina: '', professor: '', bolsista: '', data: '', horario: '', horarioTermino: '' });
       setIsModalOpen(false);
       refetchTutorias();
-      toast.success('Tutoria criada com sucesso!');
+      
+      const emailStatus = (result as any)?.emailsSent;
+      if (emailStatus?.professor || emailStatus?.bolsista) {
+        const emailsInfo = [];
+        if (emailStatus.professor) emailsInfo.push('professor');
+        if (emailStatus.bolsista) emailsInfo.push('bolsista');
+        toast.success(`Tutoria criada! Emails enviados para: ${emailsInfo.join(' e ')}`);
+      } else {
+        toast.success('Tutoria criada com sucesso!');
+      }
     } catch (error) {
       toast.error('Erro ao criar tutoria');
       console.error(error);
