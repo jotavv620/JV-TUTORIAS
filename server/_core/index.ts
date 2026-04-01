@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { initializeWebSocket } from "./websocket";
+import { startReminderScheduler } from "./reminderService";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -84,6 +85,9 @@ async function startServer() {
   if (process.env.NODE_ENV === "development") {
     initializeWebSocket(server);
   }
+  
+  // Start reminder scheduler
+  startReminderScheduler();
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, tutorias, feedbacks, checkins, disciplinas, professores, instituicoes, professorPoints, medals, achievements, leaderboard, bolsistas, googleAuthTokens, accessTokens, syncHistory, emailLog, Tutoria, Feedback, Checkin, Disciplina, Professor, Instituicao, ProfessorPoints, Medal, Achievement, Leaderboard, Bolsista, GoogleAuthToken, AccessToken, InsertAccessToken, SyncHistory, InsertSyncHistory, EmailLog, InsertEmailLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -794,4 +794,53 @@ export async function updateEmailLogStatus(emailId: number, status: 'sent' | 'fa
   if (status === 'sent') updateData.sentAt = new Date();
   
   return await db.update(emailLog).set(updateData).where(eq(emailLog.id, emailId));
+}
+
+
+/**
+ * Get all tutorias that need reminders (24h before and reminder not sent yet)
+ */
+export async function getTutoriasNeedingReminder() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Calculate the time window: 23h to 25h from now
+  const now = new Date();
+  const in23Hours = new Date(now.getTime() + 23 * 60 * 60 * 1000);
+  const in25Hours = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+  
+  // Get today's date in YYYY-MM-DD format
+  const today = now.toISOString().split('T')[0];
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  // Get tutorias scheduled for tomorrow that haven't had reminders sent
+  const result = await db
+    .select()
+    .from(tutorias)
+    .where((t) => {
+      const conditions = [];
+      // Get tutorias for tomorrow
+      conditions.push(eq(t.data, tomorrow));
+      // That haven't had reminders sent yet
+      conditions.push(eq(t.reminder_sent, false));
+      // And are still scheduled (not completed)
+      conditions.push(eq(t.status, 'scheduled'));
+      
+      return conditions.reduce((a, b) => and(a, b) as any);
+    });
+  
+  return result || [];
+}
+
+/**
+ * Mark a tutoria reminder as sent
+ */
+export async function markReminderSent(tutoriaId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db
+    .update(tutorias)
+    .set({ reminder_sent: true })
+    .where(eq(tutorias.id, tutoriaId));
 }

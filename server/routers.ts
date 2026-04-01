@@ -429,6 +429,27 @@ export const appRouter = router({
           throw new Error(error.message || 'Erro ao sincronizar com Google Calendar');
         }
       }),
+    
+    getReminderStatus: protectedProcedure
+      .input(z.object({
+        tutoriaId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        const tutoria = await db.getTutoriaById(input.tutoriaId);
+        if (!tutoria) {
+          throw new Error('Tutoria não encontrada');
+        }
+        
+        return {
+          tutoriaId: tutoria.id,
+          reminderSent: tutoria.reminder_sent,
+          data: tutoria.data,
+          horario: tutoria.horario,
+          disciplina: tutoria.disciplina,
+          professor: tutoria.professor,
+          bolsista: tutoria.bolsista,
+        };
+      }),
   }),
 
   // Feedback router
