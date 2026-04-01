@@ -833,14 +833,63 @@ export async function getTutoriasNeedingReminder() {
 }
 
 /**
- * Mark a tutoria reminder as sent
+ * Get tutorias needing reminders for a specific interval (24h, 12h, or 1h)
  */
-export async function markReminderSent(tutoriaId: number) {
+export async function getTutoriasNeedingReminderByInterval(interval: '24h' | '12h' | '1h', now: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  let targetDate: string;
+  let reminderField: 'reminder_24h_sent' | 'reminder_12h_sent' | 'reminder_1h_sent';
+  
+  if (interval === '24h') {
+    // Get tutorias for tomorrow
+    targetDate = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    reminderField = 'reminder_24h_sent';
+  } else if (interval === '12h') {
+    // Get tutorias happening in approximately 12 hours
+    targetDate = new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString().split('T')[0];
+    reminderField = 'reminder_12h_sent';
+  } else {
+    // Get tutorias happening in approximately 1 hour (same day)
+    targetDate = now.toISOString().split('T')[0];
+    reminderField = 'reminder_1h_sent';
+  }
+  
+  const result = await db
+    .select()
+    .from(tutorias)
+    .where((t) => {
+      const conditions = [];
+      conditions.push(eq(t.data, targetDate));
+      conditions.push(eq(t[reminderField], false));
+      conditions.push(eq(t.status, 'scheduled'));
+      
+      return conditions.reduce((a, b) => and(a, b) as any);
+    });
+  
+  return result || [];
+}
+
+/**
+ * Mark a specific reminder as sent
+ */
+export async function markReminderSent(tutoriaId: number, interval: '24h' | '12h' | '1h') {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
+  const updateData: any = {};
+  
+  if (interval === '24h') {
+    updateData.reminder_24h_sent = true;
+  } else if (interval === '12h') {
+    updateData.reminder_12h_sent = true;
+  } else if (interval === '1h') {
+    updateData.reminder_1h_sent = true;
+  }
+  
   return await db
     .update(tutorias)
-    .set({ reminder_sent: true })
+    .set(updateData)
     .where(eq(tutorias.id, tutoriaId));
 }

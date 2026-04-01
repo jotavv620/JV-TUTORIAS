@@ -14,11 +14,36 @@ export type ReminderEmailData = {
   instituicao: string;
 };
 
+type ReminderType = "24h" | "12h" | "1h";
+
 /**
- * Creates HTML email template for professor reminder (24h before)
+ * Creates HTML email template for professor reminder
  */
-export function createProfessorReminderTemplate(data: ReminderEmailData): string {
+export function createProfessorReminderTemplate(
+  data: ReminderEmailData,
+  reminderType: ReminderType
+): string {
   const dataFormatada = new Date(data.data).toLocaleDateString("pt-BR");
+  
+  const reminderMessages = {
+    "24h": {
+      title: "⏰ Lembrete: Tutoria Amanhã",
+      message: "Esta é uma lembrança de que você tem uma tutoria agendada para <strong>amanhã</strong>.",
+      urgency: "Por favor, confirme se você poderá participar.",
+    },
+    "12h": {
+      title: "⏰ Lembrete: Tutoria em 12 Horas",
+      message: "Você tem uma tutoria agendada para <strong>hoje à noite</strong>.",
+      urgency: "Confirme sua presença se ainda não o fez.",
+    },
+    "1h": {
+      title: "⏰ Lembrete Urgente: Tutoria em 1 Hora",
+      message: "Sua tutoria começa em <strong>1 hora</strong>!",
+      urgency: "Prepare-se para participar.",
+    },
+  };
+
+  const reminder = reminderMessages[reminderType];
   
   return `
     <!DOCTYPE html>
@@ -34,21 +59,22 @@ export function createProfessorReminderTemplate(data: ReminderEmailData): string
           .label { font-weight: bold; color: #ff8c00; }
           .alert { background-color: #fff3cd; border-left: 4px solid #ff8c00; padding: 15px; margin: 20px 0; border-radius: 3px; }
           .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+          .urgency { font-weight: bold; color: #d9534f; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>⏰ Lembrete: Tutoria Amanhã</h1>
+            <h1>${reminder.title}</h1>
           </div>
           
           <div class="content">
             <p>Olá <strong>${data.professor}</strong>,</p>
             
-            <p>Este é um lembrete de que você tem uma tutoria agendada para <strong>amanhã</strong>. Confirme sua presença!</p>
+            <p>${reminder.message}</p>
             
             <div class="alert">
-              <strong>⚠️ Importante:</strong> Por favor, confirme se você poderá participar desta tutoria respondendo este email.
+              <strong>⚠️ ${reminder.urgency}</strong>
             </div>
             
             <h3>Detalhes da Tutoria:</h3>
@@ -89,10 +115,33 @@ export function createProfessorReminderTemplate(data: ReminderEmailData): string
 }
 
 /**
- * Creates HTML email template for bolsista reminder (24h before)
+ * Creates HTML email template for bolsista reminder
  */
-export function createBolsistaReminderTemplate(data: ReminderEmailData): string {
+export function createBolsistaReminderTemplate(
+  data: ReminderEmailData,
+  reminderType: ReminderType
+): string {
   const dataFormatada = new Date(data.data).toLocaleDateString("pt-BR");
+  
+  const reminderMessages = {
+    "24h": {
+      title: "⏰ Lembrete: Tutoria Amanhã",
+      message: "Você foi designado para uma tutoria amanhã. Prepare-se!",
+      checklist: true,
+    },
+    "12h": {
+      title: "⏰ Lembrete: Tutoria em 12 Horas",
+      message: "Sua tutoria é hoje à noite. Verifique os últimos detalhes.",
+      checklist: true,
+    },
+    "1h": {
+      title: "⏰ Lembrete Urgente: Tutoria em 1 Hora",
+      message: "Sua tutoria começa em 1 hora! Prepare-se agora.",
+      checklist: false,
+    },
+  };
+
+  const reminder = reminderMessages[reminderType];
   
   return `
     <!DOCTYPE html>
@@ -113,14 +162,15 @@ export function createBolsistaReminderTemplate(data: ReminderEmailData): string 
       <body>
         <div class="container">
           <div class="header">
-            <h1>⏰ Lembrete: Tutoria Amanhã</h1>
+            <h1>${reminder.title}</h1>
           </div>
           
           <div class="content">
             <p>Olá,</p>
             
-            <p>Este é um lembrete de que você tem uma tutoria agendada para <strong>amanhã</strong>. Prepare-se!</p>
+            <p>${reminder.message}</p>
             
+            ${reminder.checklist ? `
             <div class="alert">
               <strong>✓ Checklist:</strong>
               <ul>
@@ -129,6 +179,16 @@ export function createBolsistaReminderTemplate(data: ReminderEmailData): string 
                 <li>Faça o check-in no sistema no horário agendado</li>
               </ul>
             </div>
+            ` : `
+            <div class="alert">
+              <strong>✓ Prepare-se agora:</strong>
+              <ul>
+                <li>Verifique o material da aula</li>
+                <li>Teste sua conexão/local</li>
+                <li>Faça o check-in quando começar</li>
+              </ul>
+            </div>
+            `}
             
             <h3>Detalhes da Tutoria:</h3>
             
@@ -168,45 +228,59 @@ export function createBolsistaReminderTemplate(data: ReminderEmailData): string 
 }
 
 /**
- * Sends reminder email to professor 24h before tutoria
+ * Sends reminder email to professor
  */
 export async function sendProfessorReminderEmail(
   professorEmail: string,
-  data: ReminderEmailData
+  data: ReminderEmailData,
+  reminderType: ReminderType = "24h"
 ): Promise<boolean> {
   if (!professorEmail) {
     console.warn("[Reminder] Professor email not provided");
     return false;
   }
 
+  const subjectMap = {
+    "24h": `Lembrete: Tutoria de ${data.disciplina} amanhã`,
+    "12h": `Lembrete: Tutoria de ${data.disciplina} em 12 horas`,
+    "1h": `Lembrete Urgente: Tutoria de ${data.disciplina} em 1 hora`,
+  };
+
   return sendEmail({
     to: professorEmail,
-    subject: `Lembrete: Tutoria de ${data.disciplina} amanhã`,
-    html: createProfessorReminderTemplate(data),
+    subject: subjectMap[reminderType],
+    html: createProfessorReminderTemplate(data, reminderType),
   });
 }
 
 /**
- * Sends reminder email to bolsista 24h before tutoria
+ * Sends reminder email to bolsista
  */
 export async function sendBolsistaReminderEmail(
   bolsistaEmail: string,
-  data: ReminderEmailData
+  data: ReminderEmailData,
+  reminderType: ReminderType = "24h"
 ): Promise<boolean> {
   if (!bolsistaEmail) {
     console.warn("[Reminder] Bolsista email not provided");
     return false;
   }
 
+  const subjectMap = {
+    "24h": `Lembrete: Tutoria de ${data.disciplina} amanhã`,
+    "12h": `Lembrete: Tutoria de ${data.disciplina} em 12 horas`,
+    "1h": `Lembrete Urgente: Tutoria de ${data.disciplina} em 1 hora`,
+  };
+
   return sendEmail({
     to: bolsistaEmail,
-    subject: `Lembrete: Tutoria de ${data.disciplina} amanhã`,
-    html: createBolsistaReminderTemplate(data),
+    subject: subjectMap[reminderType],
+    html: createBolsistaReminderTemplate(data, reminderType),
   });
 }
 
 /**
- * Processes reminders for tutorias happening in 24 hours
+ * Processes reminders for tutorias at different intervals (24h, 12h, 1h)
  * Should be called by a scheduled job every hour
  */
 export async function processPendingReminders(): Promise<{
@@ -221,67 +295,82 @@ export async function processPendingReminders(): Promise<{
   let errors = 0;
 
   try {
-    // Get all tutorias that need reminders
-    const tutoriasNeedingReminder = await db.getTutoriasNeedingReminder();
+    const now = new Date();
     
-    console.log(`[Reminder] Found ${tutoriasNeedingReminder.length} tutorias needing reminders`);
-    processed = tutoriasNeedingReminder.length;
+    // Check for 24h reminders (tutorias happening tomorrow)
+    await processRemindersForInterval("24h", now);
+    
+    // Check for 12h reminders (tutorias happening in 12 hours)
+    await processRemindersForInterval("12h", now);
+    
+    // Check for 1h reminders (tutorias happening in 1 hour)
+    await processRemindersForInterval("1h", now);
 
-    for (const tutoria of tutoriasNeedingReminder) {
-      try {
-        const reminderData: ReminderEmailData = {
-          disciplina: tutoria.disciplina,
-          professor: tutoria.professor,
-          tutor: tutoria.bolsista,
-          data: tutoria.data,
-          horario: tutoria.horario,
-          horarioTermino: tutoria.horarioTermino,
-          instituicao: tutoria.instituicao,
-        };
-
-        let professorEmailSent = false;
-        let bolsistaEmailSent = false;
-
-        // Send professor reminder
-        const professorData = await db.getProfessorByName(tutoria.professor);
-        if (professorData?.email) {
-          professorEmailSent = await sendProfessorReminderEmail(
-            professorData.email,
-            reminderData
-          );
-          console.log(`[Reminder] Professor email sent: ${professorEmailSent}`);
-        }
-
-        // Send bolsista reminder
-        const bolsistaData = await db.getBolsistaByName(tutoria.bolsista);
-        if (bolsistaData?.email) {
-          bolsistaEmailSent = await sendBolsistaReminderEmail(
-            bolsistaData.email,
-            reminderData
-          );
-          console.log(`[Reminder] Bolsista email sent: ${bolsistaEmailSent}`);
-        }
-
-        // Mark as sent if at least one email was sent
-        if (professorEmailSent || bolsistaEmailSent) {
-          await db.markReminderSent(tutoria.id);
-          sent++;
-          console.log(`[Reminder] ✅ Reminder sent for tutoria ${tutoria.id}`);
-        }
-      } catch (error) {
-        console.error(`[Reminder] Error processing tutoria ${tutoria.id}:`, error);
-        errors++;
-      }
-    }
-
-    console.log(
-      `[Reminder] Processing complete - Processed: ${processed}, Sent: ${sent}, Errors: ${errors}`
-    );
+    console.log(`[Reminder] Processing complete`);
   } catch (error) {
     console.error("[Reminder] Error in reminder processing:", error);
   }
 
   return { processed, sent, errors };
+}
+
+/**
+ * Process reminders for a specific time interval
+ */
+async function processRemindersForInterval(
+  interval: ReminderType,
+  now: Date
+): Promise<void> {
+  const tutoriasNeedingReminder = await db.getTutoriasNeedingReminderByInterval(interval, now);
+  
+  console.log(`[Reminder] Found ${tutoriasNeedingReminder.length} tutorias needing ${interval} reminders`);
+
+  for (const tutoria of tutoriasNeedingReminder) {
+    try {
+      const reminderData: ReminderEmailData = {
+        disciplina: tutoria.disciplina,
+        professor: tutoria.professor,
+        tutor: tutoria.bolsista,
+        data: tutoria.data,
+        horario: tutoria.horario,
+        horarioTermino: tutoria.horarioTermino,
+        instituicao: tutoria.instituicao,
+      };
+
+      let professorEmailSent = false;
+      let bolsistaEmailSent = false;
+
+      // Send professor reminder
+      const professorData = await db.getProfessorByName(tutoria.professor);
+      if (professorData?.email) {
+        professorEmailSent = await sendProfessorReminderEmail(
+          professorData.email,
+          reminderData,
+          interval
+        );
+        console.log(`[Reminder] Professor ${interval} email sent: ${professorEmailSent}`);
+      }
+
+      // Send bolsista reminder
+      const bolsistaData = await db.getBolsistaByName(tutoria.bolsista);
+      if (bolsistaData?.email) {
+        bolsistaEmailSent = await sendBolsistaReminderEmail(
+          bolsistaData.email,
+          reminderData,
+          interval
+        );
+        console.log(`[Reminder] Bolsista ${interval} email sent: ${bolsistaEmailSent}`);
+      }
+
+      // Mark as sent if at least one email was sent
+      if (professorEmailSent || bolsistaEmailSent) {
+        await db.markReminderSent(tutoria.id, interval);
+        console.log(`[Reminder] ✅ ${interval} reminder sent for tutoria ${tutoria.id}`);
+      }
+    } catch (error) {
+      console.error(`[Reminder] Error processing tutoria ${tutoria.id}:`, error);
+    }
+  }
 }
 
 /**
