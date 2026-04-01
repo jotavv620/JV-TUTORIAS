@@ -46,7 +46,7 @@ export default function AccessTokenManager() {
   });
 
   // Deactivate token mutation
-  const deactivateMutation = trpc.accessTokens.revoke.useMutation({
+  const deactivateMutation = trpc.accessTokens.deactivate.useMutation({
     onSuccess: () => {
       toast.success('Código desativado com sucesso!');
       refetch();

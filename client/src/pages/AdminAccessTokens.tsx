@@ -43,12 +43,12 @@ export default function AdminAccessTokens() {
     },
   });
 
-  const revokeMutation = trpc.accessTokens.revoke.useMutation({
+  const revokeMutation = trpc.accessTokens.deactivate.useMutation({
     onSuccess: () => {
       toast.success("Token revogado com sucesso!");
       refetch();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Erro ao revogar token");
     },
   });
