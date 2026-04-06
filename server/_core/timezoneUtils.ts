@@ -4,7 +4,7 @@
  */
 
 const BRASILIA_TIMEZONE = 'America/Sao_Paulo';
-const BRASILIA_OFFSET_MS = -3 * 60 * 60 * 1000; // GMT-3 in milliseconds
+const BRASILIA_OFFSET_HOURS = 3; // GMT-3, so UTC is +3 hours ahead
 
 /**
  * Convert a local Brasília time to UTC ISO string for Google Calendar
@@ -22,16 +22,13 @@ export function brasiliaTimetToUTC(
   hour: number,
   minute: number
 ): string {
-  // Create date in Brasília timezone
-  // We need to account for the fact that JavaScript Date is always in the browser's local timezone
-  // So we create a UTC date and then adjust it
-  
   // Create the date as if it were in UTC first
   const utcDate = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
   
-  // Adjust for Brasília timezone offset (GMT-3)
-  // If the time is 09:00 in Brasília, we need to add 3 hours to get UTC time (12:00 UTC)
-  const utcAdjusted = new Date(utcDate.getTime() - BRASILIA_OFFSET_MS);
+  // Brasília is GMT-3, meaning it's 3 hours BEHIND UTC
+  // So to convert FROM Brasília TO UTC, we ADD 3 hours
+  // Example: 09:00 Brasília = 12:00 UTC
+  const utcAdjusted = new Date(utcDate.getTime() + BRASILIA_OFFSET_HOURS * 60 * 60 * 1000);
   
   return utcAdjusted.toISOString();
 }
@@ -50,9 +47,10 @@ export function utcToBrasiliaTime(isoString: string): {
 } {
   const utcDate = new Date(isoString);
   
-  // Adjust for Brasília timezone offset (GMT-3)
-  // If UTC time is 12:00, Brasília time is 09:00 (subtract 3 hours)
-  const brasiliDate = new Date(utcDate.getTime() + BRASILIA_OFFSET_MS);
+  // Brasília is GMT-3, meaning it's 3 hours BEHIND UTC
+  // So to convert FROM UTC TO Brasília, we SUBTRACT 3 hours
+  // Example: 12:00 UTC = 09:00 Brasília
+  const brasiliDate = new Date(utcDate.getTime() - BRASILIA_OFFSET_HOURS * 60 * 60 * 1000);
   
   return {
     year: brasiliDate.getUTCFullYear(),
