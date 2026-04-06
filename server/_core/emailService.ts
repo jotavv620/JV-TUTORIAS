@@ -90,8 +90,9 @@ export function createProfessorEmailTemplate(data: TutoriaEmailData): string {
       </head>
       <body>
         <div class="container">
-          <div class="header">
-            <h1>Nova Tutoria Agendada</h1>
+          <div class="header" style="display: flex; align-items: center; gap: 15px;">
+            <img src="https://d2xsxph8kpxj0f.cloudfront.net/310519663332323498/6856TeX4yea3eYHoBQTyWM/logo-responsivo_77778679.png" alt="UNEF Logo" style="height: 40px; width: auto;">
+            <h1 style="margin: 0;">Nova Tutoria Agendada</h1>
           </div>
           
           <div class="content">
@@ -155,8 +156,9 @@ export function createBolsistaEmailTemplate(data: TutoriaEmailData): string {
       </head>
       <body>
         <div class="container">
-          <div class="header">
-            <h1>Tutoria Agendada</h1>
+          <div class="header" style="display: flex; align-items: center; gap: 15px;">
+            <img src="https://d2xsxph8kpxj0f.cloudfront.net/310519663332323498/6856TeX4yea3eYHoBQTyWM/logo-responsivo_77778679.png" alt="UNEF Logo" style="height: 40px; width: auto;">
+            <h1 style="margin: 0;">Tutoria Agendada</h1>
           </div>
           
           <div class="content">

@@ -170,8 +170,13 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
+                  <img 
+                    src="https://d2xsxph8kpxj0f.cloudfront.net/310519663332323498/6856TeX4yea3eYHoBQTyWM/logo-responsivo_77778679.png"
+                    alt="UNEF Logo"
+                    className="h-8 w-auto"
+                  />
+                  <span className="font-semibold tracking-tight truncate text-sm">
+                    Tutoria Manager
                   </span>
                 </div>
               ) : null}
