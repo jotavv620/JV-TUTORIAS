@@ -159,8 +159,25 @@ function DashboardLayoutContent({
           className="border-r-0"
           disableTransition={isResizing}
         >
-          <SidebarHeader className="h-16 justify-center">
-            <div className="flex items-center gap-3 px-2 transition-all w-full">
+          <SidebarHeader className="h-16 justify-center border-b">
+            <div className="flex items-center gap-3 px-2 transition-all w-full justify-between">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <img 
+                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663332323498/6856TeX4yea3eYHoBQTyWM/logo-responsivo_77778679.png"
+                  alt="UNEF Logo"
+                  className="h-10 w-auto shrink-0"
+                />
+                {!isCollapsed && (
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-bold tracking-tight text-sm leading-tight">
+                      TUTORIA
+                    </span>
+                    <span className="font-bold tracking-tight text-sm leading-tight">
+                      MANAGER
+                    </span>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={toggleSidebar}
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
@@ -168,18 +185,6 @@ function DashboardLayoutContent({
               >
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
-              {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <img 
-                    src="https://d2xsxph8kpxj0f.cloudfront.net/310519663332323498/6856TeX4yea3eYHoBQTyWM/logo-responsivo_77778679.png"
-                    alt="UNEF Logo"
-                    className="h-8 w-auto"
-                  />
-                  <span className="font-semibold tracking-tight truncate text-sm">
-                    Tutoria Manager
-                  </span>
-                </div>
-              ) : null}
             </div>
           </SidebarHeader>
 
