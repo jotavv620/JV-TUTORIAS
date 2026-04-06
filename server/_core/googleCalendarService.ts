@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import type { OAuth2Client } from 'google-auth-library';
+import { brasiliaTimetToUTC } from './timezoneUtils';
 
 const calendar = google.calendar('v3');
 
@@ -46,9 +47,9 @@ export async function createGoogleCalendarEvent(
     const [startHour, startMin] = tutoriaData.horario.split(':').map(Number);
     const [endHour, endMin] = tutoriaData.horarioTermino.split(':').map(Number);
 
-    // Create ISO datetime strings (assuming UTC-3 timezone for Brazil)
-    const startDateTime = new Date(year, month - 1, day, startHour, startMin, 0);
-    const endDateTime = new Date(year, month - 1, day, endHour, endMin, 0);
+    // Convert Brasília time to UTC for Google Calendar
+    const startDateTimeUTC = brasiliaTimetToUTC(year, month, day, startHour, startMin);
+    const endDateTimeUTC = brasiliaTimetToUTC(year, month, day, endHour, endMin);
 
     const event: CalendarEvent = {
       summary: `Tutoria - ${tutoriaData.disciplina}`,
@@ -59,11 +60,11 @@ Bolsista: ${tutoriaData.bolsista}
 Local: ${tutoriaData.instituicao}
       `.trim(),
       start: {
-        dateTime: startDateTime.toISOString(),
+        dateTime: startDateTimeUTC,
         timeZone: 'America/Sao_Paulo',
       },
       end: {
-        dateTime: endDateTime.toISOString(),
+        dateTime: endDateTimeUTC,
         timeZone: 'America/Sao_Paulo',
       },
       attendees: [],
@@ -125,8 +126,8 @@ export async function updateGoogleCalendarEvent(
     const [startHour, startMin] = tutoriaData.horario.split(':').map(Number);
     const [endHour, endMin] = tutoriaData.horarioTermino.split(':').map(Number);
 
-    const startDateTime = new Date(year, month - 1, day, startHour, startMin, 0);
-    const endDateTime = new Date(year, month - 1, day, endHour, endMin, 0);
+    const startDateTimeUTC = brasiliaTimetToUTC(year, month, day, startHour, startMin);
+    const endDateTimeUTC = brasiliaTimetToUTC(year, month, day, endHour, endMin);
 
     const event: CalendarEvent = {
       summary: `Tutoria - ${tutoriaData.disciplina}`,
@@ -137,11 +138,11 @@ Bolsista: ${tutoriaData.bolsista}
 Local: ${tutoriaData.instituicao}
       `.trim(),
       start: {
-        dateTime: startDateTime.toISOString(),
+        dateTime: startDateTimeUTC,
         timeZone: 'America/Sao_Paulo',
       },
       end: {
-        dateTime: endDateTime.toISOString(),
+        dateTime: endDateTimeUTC,
         timeZone: 'America/Sao_Paulo',
       },
       attendees: [],
