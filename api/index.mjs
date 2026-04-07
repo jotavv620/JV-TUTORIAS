@@ -1,24 +1,55 @@
-import dotenv from 'dotenv';
-import path from 'path';
+/**
+ * VERCEL SERVERLESS FUNCTION - FINAL SOLUTION
+ * 
+ * This handler properly imports and serves the Express app
+ * with comprehensive error handling and logging.
+ */
 
-// Garante que o .env seja lido da raiz, já que o arquivo está na pasta /api
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
-// Importa o seu servidor real (ajuste o caminho se necessário)
-// Se o seu arquivo original for .ts, a Vercel resolve automaticamente
-import appPromise from '../server/_core/index'; 
+let cachedApp = null;
 
 export default async function handler(req, res) {
   try {
-    const app = await appPromise;
+    // Lazy load the compiled app on first request
+    if (!cachedApp) {
+      console.log("[Handler] Loading app from dist/index.js...");
+      
+      try {
+        const module = await import("../dist/index.js");
+        const createApp = module.default || module.createApp;
+        
+        if (!createApp || typeof createApp !== "function") {
+          throw new Error(`Invalid export: expected function, got ${typeof createApp}`);
+        }
+        
+        console.log("[Handler] Creating app instance...");
+        cachedApp = await createApp();
+        
+        if (!cachedApp || typeof cachedApp !== "function") {
+          throw new Error(`createApp did not return a function, got ${typeof cachedApp}`);
+        }
+        
+        console.log("[Handler] App loaded successfully");
+      } catch (importError) {
+        console.error("[Handler] Import error:", importError);
+        throw new Error(`Failed to load app: ${importError.message}`);
+      }
+    }
+
+    // Handle the request
+    console.log(`[Handler] ${req.method} ${req.url}`);
     
-    // Se o seu app for uma instância do Express, ele é uma função (req, res)
-    return app(req, res);
+    // Call the Express app
+    return cachedApp(req, res);
   } catch (error) {
-    console.error("Erro na API:", error);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message: error.message
-    });
+    console.error("[Handler] Fatal error:", error);
+
+    // Return error response if headers haven't been sent
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: "Internal Server Error",
+        message: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 }

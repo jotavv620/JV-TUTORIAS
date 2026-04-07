@@ -106,4 +106,4 @@ if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
   startServer().catch(console.error);
 }
 
-export default App;
+export default createApp;
