@@ -183,7 +183,11 @@ function DashboardLayoutContent({
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-muted-foreground" />
+                <img 
+                  src="https://d2xsxph8kpxj0f.cloudfront.net/310519663332323498/6856TeX4yea3eYHoBQTyWM/logo-responsivo_77778679.png"
+                  alt="UNEF Logo"
+                  className="h-6 w-6 object-contain"
+                />
               </button>
             </div>
           </SidebarHeader>
