@@ -1,55 +1,63 @@
 /**
- * VERCEL SERVERLESS FUNCTION - FINAL SOLUTION
- * 
- * This handler properly imports and serves the Express app
- * with comprehensive error handling and logging.
+ * VERCEL SERVERLESS FUNCTION
+ * Serves the Vite frontend from dist/
  */
 
-let cachedApp = null;
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-export default async function handler(req, res) {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distDir = path.join(__dirname, "../dist");
+
+export default function handler(req, res) {
   try {
-    // Lazy load the compiled app on first request
-    if (!cachedApp) {
-      console.log("[Handler] Loading app from dist/index.js...");
+    // Serve static files from dist
+    const filePath = path.join(distDir, req.url === "/" ? "index.html" : req.url);
+    
+    // Prevent directory traversal
+    if (!filePath.startsWith(distDir)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    // Try to serve the file
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath);
       
-      try {
-        const module = await import("../dist/index.js");
-        const createApp = module.default || module.createApp;
-        
-        if (!createApp || typeof createApp !== "function") {
-          throw new Error(`Invalid export: expected function, got ${typeof createApp}`);
-        }
-        
-        console.log("[Handler] Creating app instance...");
-        cachedApp = await createApp();
-        
-        if (!cachedApp || typeof cachedApp !== "function") {
-          throw new Error(`createApp did not return a function, got ${typeof cachedApp}`);
-        }
-        
-        console.log("[Handler] App loaded successfully");
-      } catch (importError) {
-        console.error("[Handler] Import error:", importError);
-        throw new Error(`Failed to load app: ${importError.message}`);
+      // Set content type based on file extension
+      const ext = path.extname(filePath);
+      const contentTypes = {
+        ".html": "text/html",
+        ".js": "application/javascript",
+        ".css": "text/css",
+        ".json": "application/json",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".gif": "image/gif",
+        ".svg": "image/svg+xml",
+        ".woff": "font/woff",
+        ".woff2": "font/woff2",
+      };
+      
+      res.setHeader("Content-Type", contentTypes[ext] || "application/octet-stream");
+      res.status(200).send(content);
+    } else {
+      // Serve index.html for SPA routing
+      const indexPath = path.join(distDir, "index.html");
+      if (fs.existsSync(indexPath)) {
+        const content = fs.readFileSync(indexPath);
+        res.setHeader("Content-Type", "text/html");
+        res.status(200).send(content);
+      } else {
+        res.status(404).json({ error: "Not Found" });
       }
     }
-
-    // Handle the request
-    console.log(`[Handler] ${req.method} ${req.url}`);
-    
-    // Call the Express app
-    return cachedApp(req, res);
   } catch (error) {
-    console.error("[Handler] Fatal error:", error);
-
-    // Return error response if headers haven't been sent
-    if (!res.headersSent) {
-      res.status(500).json({
-        error: "Internal Server Error",
-        message: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString(),
-      });
-    }
+    console.error("[Handler] Error:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: error instanceof Error ? error.message : String(error),
+    });
   }
 }
