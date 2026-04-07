@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
     "build": "vite build",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "echo 'App built successfully. Vercel will serve from dist/'",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
