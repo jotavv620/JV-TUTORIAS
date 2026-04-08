@@ -1,0 +1,14 @@
+server
+drizzle
+shared
+.env*
+.git
+.gitignore
+README.md
+*.test.ts
+vitest.config.ts
+tsconfig.json
+vite.config.ts
+package.json
+pnpm-lock.yaml
+node_modules
