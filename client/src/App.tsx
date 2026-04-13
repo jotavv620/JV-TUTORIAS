@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import AdminAccessTokens from "./pages/AdminAccessTokens";
 import EmailManagementPage from "./pages/EmailManagementPage";
 import CommunicationDashboard from "./pages/CommunicationDashboard";
+import FeedbackHistory from "./pages/FeedbackHistory";
 
 function Router() {
   const { isAuthenticated, loading } = useCustomAuth();
@@ -45,6 +46,9 @@ function Router() {
       </Route>
       <Route path={"/admin/communications"}>
         {() => <CommunicationDashboard />}
+      </Route>
+      <Route path={"/admin/feedbacks"}>
+        {() => <FeedbackHistory />}
       </Route>
       <Route path={"/404"}>
         {() => <NotFound />}

@@ -844,3 +844,142 @@ export async function markReminderSent(tutoriaId: number) {
     .set({ reminder_sent: true })
     .where(eq(tutorias.id, tutoriaId));
 }
+
+
+// Get all feedbacks with tutoria details (admin-only)
+export async function getAllFeedbacksWithFilters(filters: {
+  professor?: string;
+  disciplina?: string;
+  minRating?: number;
+  maxRating?: number;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { and, gte, lte } = await import('drizzle-orm');
+  const page = filters.page || 1;
+  const limit = filters.limit || 20;
+  const offset = (page - 1) * limit;
+
+  // Get all feedbacks with tutoria info
+  const allFeedbacks = await db
+    .select({
+      id: feedbacks.id,
+      tutoriaId: feedbacks.tutoriaId,
+      pontualidade: feedbacks.pontualidade,
+      audio: feedbacks.audio,
+      conteudo: feedbacks.conteudo,
+      comentarios: feedbacks.comentarios,
+      createdAt: feedbacks.createdAt,
+      professor: tutorias.professor,
+      disciplina: tutorias.disciplina,
+      instituicao: tutorias.instituicao,
+      bolsista: tutorias.bolsista,
+      data: tutorias.data,
+      horario: tutorias.horario,
+    })
+    .from(feedbacks)
+    .innerJoin(tutorias, eq(feedbacks.tutoriaId, tutorias.id));
+
+  // Apply filters
+  let filtered = allFeedbacks;
+
+  if (filters.professor) {
+    filtered = filtered.filter(f => f.professor === filters.professor);
+  }
+
+  if (filters.disciplina) {
+    filtered = filtered.filter(f => f.disciplina === filters.disciplina);
+  }
+
+  if (filters.startDate) {
+    filtered = filtered.filter(f => f.data >= filters.startDate!);
+  }
+
+  if (filters.endDate) {
+    filtered = filtered.filter(f => f.data <= filters.endDate!);
+  }
+
+  if (filters.minRating || filters.maxRating) {
+    filtered = filtered.filter(f => {
+      const avg = (f.pontualidade + f.audio + f.conteudo) / 3;
+      if (filters.minRating && avg < filters.minRating) return false;
+      if (filters.maxRating && avg > filters.maxRating) return false;
+      return true;
+    });
+  }
+
+  // Sort by date descending
+  filtered = filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const total = filtered.length;
+  const paginatedResults = filtered.slice(offset, offset + limit);
+
+  return { feedbacks: paginatedResults, total, page, limit };
+}
+
+// Get feedback statistics (admin-only)
+export async function getFeedbackStatistics() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const allFeedbacks = await db.select().from(feedbacks);
+  
+  if (allFeedbacks.length === 0) {
+    return {
+      totalFeedbacks: 0,
+      averagePontualidade: "0.00",
+      averageAudio: "0.00",
+      averageConteudo: "0.00",
+      averageOverall: "0.00",
+      topProfessors: [],
+    };
+  }
+
+  const avgPontualidade = (allFeedbacks.reduce((sum, f) => sum + f.pontualidade, 0) / allFeedbacks.length).toFixed(2);
+  const avgAudio = (allFeedbacks.reduce((sum, f) => sum + f.audio, 0) / allFeedbacks.length).toFixed(2);
+  const avgConteudo = (allFeedbacks.reduce((sum, f) => sum + f.conteudo, 0) / allFeedbacks.length).toFixed(2);
+  const avgOverall = (((parseFloat(avgPontualidade) + parseFloat(avgAudio) + parseFloat(avgConteudo)) / 3)).toFixed(2);
+
+  // Get top professors
+  const feedbacksWithTutorias = await db
+    .select({
+      professor: tutorias.professor,
+      pontualidade: feedbacks.pontualidade,
+      audio: feedbacks.audio,
+      conteudo: feedbacks.conteudo,
+    })
+    .from(feedbacks)
+    .innerJoin(tutorias, eq(feedbacks.tutoriaId, tutorias.id));
+
+  const professorStats: Record<string, any> = {};
+  feedbacksWithTutorias.forEach((f) => {
+    if (!professorStats[f.professor]) {
+      professorStats[f.professor] = { count: 0, totalRating: 0 };
+    }
+    professorStats[f.professor].count++;
+    professorStats[f.professor].totalRating += (f.pontualidade + f.audio + f.conteudo) / 3;
+  });
+
+  const topProfessors = Object.entries(professorStats)
+    .map(([name, stats]) => ({
+      professor: name,
+      feedbackCount: stats.count,
+      averageRating: (stats.totalRating / stats.count).toFixed(2),
+    }))
+    .sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating))
+    .slice(0, 10);
+
+  return {
+    totalFeedbacks: allFeedbacks.length,
+    averagePontualidade: avgPontualidade,
+    averageAudio: avgAudio,
+    averageConteudo: avgConteudo,
+    averageOverall: avgOverall,
+    topProfessors,
+  };
+}

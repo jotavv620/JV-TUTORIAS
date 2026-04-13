@@ -480,6 +480,35 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await db.getFeedbackByTutoriaId(input.tutoriaId);
       }),
+
+    // Admin-only: Get all feedbacks with filtering
+    getAllFeedbacks: protectedProcedure
+      .input(z.object({
+        professor: z.string().optional(),
+        disciplina: z.string().optional(),
+        minRating: z.number().min(1).max(5).optional(),
+        maxRating: z.number().min(1).max(5).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        page: z.number().default(1),
+        limit: z.number().default(20),
+      }))
+      .query(async ({ ctx, input }) => {
+        // Only admins can view all feedbacks
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Acesso negado. Apenas administradores podem visualizar o histórico de feedbacks.');
+        }
+        return await db.getAllFeedbacksWithFilters(input);
+      }),
+
+    // Admin-only: Get feedback statistics
+    getStatistics: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new Error('Acesso negado.');
+        }
+        return await db.getFeedbackStatistics();
+      }),
   }),
 
   // Check-in router

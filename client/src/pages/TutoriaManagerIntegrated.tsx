@@ -402,6 +402,7 @@ export default function TutoriaManagerIntegrated() {
               ...(user?.role === 'admin' ? [{ id: 'analytics', label: 'Analítica', icon: LineChart }] : []),
               { id: 'notifications', label: 'Notificações', icon: Bell },
               { id: 'calendar', label: 'Calendário', icon: Calendar },
+              ...(user?.role === 'admin' ? [{ id: 'feedbacks', label: 'Feedbacks', icon: Star }] : []),
               ...(user?.role === 'admin' ? [{ id: 'gamification', label: 'Gamificação', icon: Trophy }] : []),
               ...(user?.role === 'admin' ? [{ id: 'settings', label: 'Configurações', icon: SettingsIcon }] : []),
             ].map((tab) => {
@@ -518,6 +519,17 @@ export default function TutoriaManagerIntegrated() {
           <NotificationsTab tutorias={tutoriasArray as any} />
         ) : activeTab === 'calendar' ? (
           <CalendarTab tutorias={tutoriasArray as any} />
+        ) : activeTab === 'feedbacks' ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <Star className="w-16 h-16 text-orange-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">Histórico de Feedbacks</h2>
+              <p className="text-slate-600 mb-6">Visualize e analise todos os feedbacks das tutorias</p>
+              <a href="/admin/feedbacks" className="inline-block px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition">
+                Abrir Histórico
+              </a>
+            </div>
+          </div>
         ) : activeTab === 'gamification' ? (
           <div className="space-y-6">
             <Leaderboard professors={[]} />
